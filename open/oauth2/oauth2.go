@@ -14,9 +14,9 @@ type AuthFuncInfo struct {
 }
 
 type AuthorizationInfo struct {
-	Appid string `json:"authorizer_appid"`
+	AppId string `json:"authorizer_appid"`
 	AccessToken string `json:"authorizer_access_token"`
-	ExpiresIn string `json:"expires_in"`
+	ExpiresIn int `json:"expires_in"`
 	RefreshToken string `json:"authorizer_refresh_token"`
 	FuncInfo [] *AuthFuncInfo `json:"func_info"`
 

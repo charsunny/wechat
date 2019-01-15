@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/charsunny/wechat/internal/debug/api"
 	"io"
 	"log"
 	"math/rand"
@@ -18,13 +17,10 @@ import (
 	"time"
 	"unicode"
 	"unsafe"
-
-	"github.com/chanxuehong/util/security"
-
 	"github.com/charsunny/wechat/util"
-
+	"github.com/chanxuehong/util/security"
+	"github.com/charsunny/wechat/internal/debug/api"
 	"github.com/charsunny/wechat/internal/debug/callback"
-
 	iutil "github.com/charsunny/wechat/internal/util"
 
 )
@@ -275,7 +271,7 @@ func (srv *AuthServer) removeLastAESKey(lastAESKey []byte) {
 }
 
 func (srv *AuthServer) ComponentToken() (token string, err error) {
-	if p := (*accessToken)(atomic.LoadPointer(&srv.tokenCache)); p != nil {
+	if p := (*componentAccessToken)(atomic.LoadPointer(&srv.tokenCache)); p != nil {
 		return p.Token, nil
 	}
 	return srv.ComponentRefreshToken("")
@@ -334,15 +330,15 @@ func abs(x time.Duration) time.Duration {
 	return -x
 }
 
-type accessToken struct {
+type componentAccessToken struct {
 	Token     string `json:"component_access_token"`
 	ExpiresIn int64  `json:"expires_in"`
 }
 
 // updateToken 从微信服务器获取新的 access_token 并存入缓存, 同时返回该 access_token.
-func (srv *AuthServer) updateToken(currentToken string) (token *accessToken, cached bool, err error) {
+func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessToken, cached bool, err error) {
 	if currentToken != "" {
-		if p := (*accessToken)(atomic.LoadPointer(&srv.tokenCache)); p != nil && currentToken != p.Token {
+		if p := (*componentAccessToken)(atomic.LoadPointer(&srv.tokenCache)); p != nil && currentToken != p.Token {
 			return p, true, nil // 无需更改 p.ExpiresIn 参数值, cached == true 时用不到
 		}
 	}
@@ -379,7 +375,7 @@ func (srv *AuthServer) updateToken(currentToken string) (token *accessToken, cac
 
 	var result struct {
 		Error
-		accessToken
+		componentAccessToken
 	}
 	if err = api.DecodeJSONHttpResponse(httpResp.Body, &result); err != nil {
 		atomic.StorePointer(&srv.tokenCache, nil)
@@ -411,7 +407,7 @@ func (srv *AuthServer) updateToken(currentToken string) (token *accessToken, cac
 		return
 	}
 
-	tokenCopy := result.accessToken
+	tokenCopy := result.componentAccessToken
 	atomic.StorePointer(&srv.tokenCache, unsafe.Pointer(&tokenCopy))
 	token = &tokenCopy
 	return
@@ -561,9 +557,6 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				errorHandler.ServeError(w, r, err)
 				return
 			}
-
-			// set verify ticket to srv
-			srv.SetComponentVerifyTicket(verifyTicket.ComponentVerifyTicket)
 
 			io.WriteString(w, "success")
 

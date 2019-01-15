@@ -32,7 +32,11 @@ func GetAuthInfo(clt *core.Client, auth_code string) (authInfo AuthorizationInfo
 		core.Error
 		authorizationInfo AuthorizationInfo `json:"authorization_info"`
 	}
-	if err = clt.PostJSON(incompleteURL, map[string]interface{} {"component_appid": clt.AuthServer.AppId(), "authorization_code": auth_code}, &result); err != nil {
+	req := map[string]interface{} {
+		"component_appid": clt.AuthServer.AppId(),
+		"authorization_code": auth_code,
+	}
+	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
@@ -40,5 +44,54 @@ func GetAuthInfo(clt *core.Client, auth_code string) (authInfo AuthorizationInfo
 		return
 	}
 	authInfo = result.authorizationInfo
+	return
+}
+
+// 刷新第三方帐号的授权信息
+// 注意： 此处appid和refresh token 均为第三方帐号的appid和refreshtoken， 不是开放平台的appid和token
+func RefreshAuthInfo(clt *core.Client, appId string, refreshToken string) (authInfo AuthorizationInfo, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token="
+
+	var result struct{
+		core.Error
+		authorizationInfo AuthorizationInfo `json:"authorization_info"`
+	}
+	req := map[string]interface{} {
+		"component_appid": clt.AuthServer.AppId(),
+		"authorizer_appid": appId,
+		"authorizer_refresh_token": refreshToken,
+	}
+	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result
+		return
+	}
+	authInfo = result.authorizationInfo
+	return
+}
+
+// 获取授权方的授权信息
+// 获取授权app的具体信息
+func GetAuthAppInfo(clt *core.Client, appId string) (authInfo map[string]interface{}, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token="
+
+	var result struct{
+		core.Error
+		authorizationInfo AuthorizationInfo `json:"authorization_info"`
+	}
+	req := map[string]interface{} {
+		"component_appid": clt.AuthServer.AppId(),
+		"authorizer_appid": appId,
+	}
+	authInfo = make(map[string]interface{})
+	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result
+		return
+	}
 	return
 }
