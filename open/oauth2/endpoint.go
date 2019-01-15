@@ -1,13 +1,16 @@
 package oauth2
 
 import (
-	mpoauth2 "github.com/chanxuehong/wechat/mp/oauth2"
-	"github.com/chanxuehong/wechat/oauth2"
+	mpoauth2 "github.com/charsunny/wechat/mp/oauth2"
+	"github.com/charsunny/wechat/oauth2"
 )
 
 var _ oauth2.Endpoint = (*Endpoint)(nil)
 
-type Endpoint mpoauth2.Endpoint
+type Endpoint struct {
+	AppId     string
+	AppSecret string
+}
 
 func NewEndpoint(AppId, AppSecret string) *Endpoint {
 	return (*Endpoint)(mpoauth2.NewEndpoint(AppId, AppSecret))

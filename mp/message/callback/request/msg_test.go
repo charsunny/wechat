@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/chanxuehong/wechat/mp/core"
+	"github.com/charsunny/wechat/mp/core"
 )
 
 func TestTextMessage(t *testing.T) {

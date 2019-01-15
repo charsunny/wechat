@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/chanxuehong/wechat/mch/core"
-	"github.com/chanxuehong/wechat/util"
+	"github.com/charsunny/wechat/mch/core"
+	"github.com/charsunny/wechat/util"
 )
 
 // UnifiedOrder 统一下单.

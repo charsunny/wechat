@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chanxuehong/wechat/mp/core"
+	"github.com/charsunny/wechat/mp/core"
 )
 
 // UploadHeadImage 上传客服头像.

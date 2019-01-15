@@ -1,8 +1,8 @@
 package tools
 
 import (
-	"github.com/chanxuehong/wechat/mch/core"
-	"github.com/chanxuehong/wechat/util"
+	"github.com/charsunny/wechat/mch/core"
+	"github.com/charsunny/wechat/util"
 )
 
 // AuthCodeToOpenId 授权码查询openid.
