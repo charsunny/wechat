@@ -12,7 +12,7 @@ type AuthorizationInfo struct {
 	AccessToken string `json:"authorizer_access_token"`
 	ExpiresIn int `json:"expires_in"`
 	RefreshToken string `json:"authorizer_refresh_token"`
-	FuncInfo [] map[string]interface{} `json:"func_info"`
+	FuncInfo [] interface{} `json:"func_info"`
 
 }
 
