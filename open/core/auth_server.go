@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -354,18 +355,20 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 	}
 	url := "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
 	fmt.Println(ticket, srv.appSecret, srv.appId)
-	httpResp, err := srv.httpClient.PostForm(url, map[string][]string{
-		"component_appid": {srv.AppId()},
-		"component_appsecret": {srv.AppSecret()},
-		"component_verify_ticket": {ticket},
+	req, _ := json.Marshal(map[string]string{
+		"component_appid": srv.AppId(),
+		"component_appsecret": srv.AppSecret(),
+		"component_verify_ticket": ticket,
 	})
+	httpResp, err := srv.httpClient.Post(url, "application/json; charset=utf-8", bytes.NewReader(req))
 	if err != nil {
 		if lasttikect != "" {
-			httpResp, err = srv.httpClient.PostForm(url, map[string][]string{
-				"component_appid": {srv.AppId()},
-				"component_appsecret": {srv.AppSecret()},
-				"component_verify_ticket": {lasttikect},
+			req, _ = json.Marshal(map[string]string{
+				"component_appid": srv.AppId(),
+				"component_appsecret": srv.AppSecret(),
+				"component_verify_ticket": lasttikect,
 			})
+			httpResp, err = srv.httpClient.Post(url, "application/json; charset=utf-8", bytes.NewReader(req))
 			if err != nil {
 				srv.removeLastComponentVerifyTicket(ticket)
 				atomic.StorePointer(&srv.tokenCache, nil)
@@ -429,6 +432,14 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 
 // ServeHTTP 处理微信服务器的回调请求, query 参数可以为 nil.
 func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query url.Values) {
+
+	// 首先从cookie中读取上一次的保存的ticker provider， 不必从微信服务端获取
+	c, err := r.Cookie("component_ticker")
+	if err == nil {
+		fmt.Printf("get cookie ticker: %s", c.Value)
+		srv.setComponentVerifyTicket(c.Value)
+	}
+
 	callback.DebugPrintRequest(r)
 	if query == nil {
 		query = r.URL.Query()
@@ -573,6 +584,12 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 			}
 			fmt.Printf("get wechat server ticker: %v, %v\n", wantAppId, verifyTicket.ComponentVerifyTicket)
 			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket)
+			// set cookie for later user
+			http.SetCookie(w, &http.Cookie{
+				Name: "component_ticker",
+				Value: verifyTicket.ComponentVerifyTicket,
+				Expires: time.Now().Add(time.Duration(10 * 60 * time.Second)), //设置过期时间是9分钟，通常verfiyticker是10分钟刷新一次，但是有效期比10分钟长
+			})
 			io.WriteString(w, "success")
 
 		default:
