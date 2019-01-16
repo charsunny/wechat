@@ -2,7 +2,6 @@ package oauth2
 
 import (
 	"github.com/charsunny/wechat/open/core"
-	"fmt"
 )
 
 // 获取预授权码 配合 授权链接获取的authcode 一起服用， 换取token
@@ -17,7 +16,6 @@ func GetPreAuthCode(clt *core.Client) (code string, err error) {
 	if err = clt.PostJSON(incompleteURL, map[string]interface{} {"component_appid": clt.AuthServer.AppId()}, &result); err != nil {
 		return
 	}
-	fmt.Printf("%v, %v", result.ErrCode, result.ErrMsg)
 	if result.ErrCode != core.ErrCodeOK {
 		err = &result.Error
 		return
@@ -32,7 +30,7 @@ func GetAuthInfo(clt *core.Client, auth_code string) (authInfo AuthorizationInfo
 
 	var result struct{
 		core.Error
-		authorizationInfo AuthorizationInfo `json:"authorization_info"`
+		AuthorizationInfo AuthorizationInfo `json:"authorization_info"`
 	}
 	req := map[string]interface{} {
 		"component_appid": clt.AuthServer.AppId(),
@@ -45,7 +43,7 @@ func GetAuthInfo(clt *core.Client, auth_code string) (authInfo AuthorizationInfo
 		err = &result.Error
 		return
 	}
-	authInfo = result.authorizationInfo
+	authInfo = result.AuthorizationInfo
 	return
 }
 
@@ -56,7 +54,7 @@ func RefreshAuthInfo(clt *core.Client, appId string, refreshToken string) (authI
 
 	var result struct{
 		core.Error
-		authorizationInfo AuthorizationInfo `json:"authorization_info"`
+		AuthorizationInfo AuthorizationInfo `json:"authorization_info"`
 	}
 	req := map[string]interface{} {
 		"component_appid": clt.AuthServer.AppId(),
@@ -70,7 +68,7 @@ func RefreshAuthInfo(clt *core.Client, appId string, refreshToken string) (authI
 		err = &result.Error
 		return
 	}
-	authInfo = result.authorizationInfo
+	authInfo = result.AuthorizationInfo
 	return
 }
 
@@ -79,21 +77,14 @@ func RefreshAuthInfo(clt *core.Client, appId string, refreshToken string) (authI
 func GetAuthAppInfo(clt *core.Client, appId string) (authInfo map[string]interface{}, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token="
 
-	var result struct{
-		core.Error
-		authorizationInfo AuthorizationInfo `json:"authorization_info"`
-	}
 	req := map[string]interface{} {
 		"component_appid": clt.AuthServer.AppId(),
 		"authorizer_appid": appId,
 	}
 	authInfo = make(map[string]interface{})
-	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
+	if err = clt.PostJSON(incompleteURL, req, &authInfo); err != nil {
 		return
 	}
-	if result.ErrCode != core.ErrCodeOK {
-		err = &result.Error
-		return
-	}
+
 	return
 }
