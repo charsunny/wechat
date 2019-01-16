@@ -300,6 +300,7 @@ NEW_TICK_DURATION:
 		select {
 		case currentToken := <-srv.refreshTokenRequestChan:
 			accessToken, cached, err := srv.updateToken(currentToken)
+			fmt.Printf("%v,%v,%v", accessToken, cached, err)
 			if err != nil {
 				srv.refreshTokenResponseChan <- refreshTokenResult{err: err}
 				break
@@ -350,6 +351,7 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 	ticket, lasttikect :=  srv.getComponentVerifyTicket()
 	if ticket == "" && lasttikect == "" {
 		atomic.StorePointer(&srv.tokenCache, nil)
+		err = fmt.Errorf("ticket empty. Server ticket is empty, get ticket latter")
 		return
 	}
 	url := "https://api.weixin.qq.com/cgi-bin/component/api_component_token&component_appid=" + srv.AppId() +
