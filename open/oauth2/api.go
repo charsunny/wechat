@@ -8,7 +8,7 @@ import (
 func GetPreAuthCode(clt *core.Client) (code string, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="
 
-	var result struct{
+	var result struct {
 		core.Error
 		PreAuthCode string `json:"pre_auth_code"`
 		ExpiresIn int `json:"expires_in"`
@@ -17,7 +17,7 @@ func GetPreAuthCode(clt *core.Client) (code string, err error) {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	code = result.PreAuthCode
@@ -40,7 +40,7 @@ func GetAuthInfo(clt *core.Client, auth_code string) (authInfo AuthorizationInfo
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	authInfo = result.authorizationInfo
@@ -65,7 +65,7 @@ func RefreshAuthInfo(clt *core.Client, appId string, refreshToken string) (authI
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	authInfo = result.authorizationInfo
@@ -90,7 +90,7 @@ func GetAuthAppInfo(clt *core.Client, appId string) (authInfo map[string]interfa
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	return
