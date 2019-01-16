@@ -6,9 +6,13 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/chanxuehong/util/security"
+	"github.com/charsunny/wechat/internal/debug/api"
+	"github.com/charsunny/wechat/internal/debug/callback"
+	iutil "github.com/charsunny/wechat/internal/util"
+	"github.com/charsunny/wechat/util"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -17,12 +21,6 @@ import (
 	"time"
 	"unicode"
 	"unsafe"
-	"github.com/charsunny/wechat/util"
-	"github.com/chanxuehong/util/security"
-	"github.com/charsunny/wechat/internal/debug/api"
-	"github.com/charsunny/wechat/internal/debug/callback"
-	iutil "github.com/charsunny/wechat/internal/util"
-
 )
 
 // AuthServer 用于处理微信服务器的回调请求, 并发安全!
@@ -122,7 +120,7 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 		refreshTokenResponseChan: make(chan refreshTokenResult),
 	}
 
-	go srv.tokenUpdateDaemon(time.Hour * 24 * time.Duration(100+rand.Int63n(200)))
+	go srv.tokenUpdateDaemon(time.Hour * 1)
 
 	return
 }
@@ -351,7 +349,7 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 	ticket, lasttikect :=  srv.getComponentVerifyTicket()
 	if ticket == "" && lasttikect == "" {
 		atomic.StorePointer(&srv.tokenCache, nil)
-		err = fmt.Errorf("ticket empty. Server ticket is empty, get ticket latter")
+		err = fmt.Errorf("ticket empty. Server ticket is empty, get ticket latter\n")
 		return
 	}
 	url := "https://api.weixin.qq.com/cgi-bin/component/api_component_token&component_appid=" + srv.AppId() +
@@ -558,7 +556,7 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				return
 			}
 			if wantAppId != verifyTicket.AppId {
-				err = fmt.Errorf("the message ToUserName mismatch between ciphertext and plaintext, %q != %q",
+				err = fmt.Errorf("the message AppId mismatch between ciphertext and plaintext, %q != %q",
 					wantAppId, verifyTicket.AppId)
 				errorHandler.ServeError(w, r, err)
 				return
@@ -586,7 +584,7 @@ type verifyTickectMsg struct {
 
 type cipherRequestHttpBody struct {
 	XMLName            struct{} `xml:"xml"`
-	ToUserName         string   `xml:"ToUserName"`
+	AppId         string   `xml:"AppId"`
 	Base64EncryptedMsg []byte   `xml:"Encrypt"`
 }
 
@@ -594,8 +592,8 @@ var (
 	msgStartElementLiteral = []byte("<xml>")
 	msgEndElementLiteral   = []byte("</xml>")
 
-	msgToUserNameStartElementLiteral = []byte("<ToUserName>")
-	msgToUserNameEndElementLiteral   = []byte("</ToUserName>")
+	msgAppIdStartElementLiteral = []byte("<AppId>")
+	msgAppIdEndElementLiteral   = []byte("</AppId>")
 
 	msgEncryptStartElementLiteral = []byte("<Encrypt>")
 	msgEncryptEndElementLiteral   = []byte("</Encrypt>")
@@ -605,7 +603,7 @@ var (
 )
 
 //<xml>
-//    <ToUserName><![CDATA[gh_b1eb3f8bd6c6]]></ToUserName>
+//    <AppId><![CDATA[gh_b1eb3f8bd6c6]]></AppId>
 //    <Encrypt><![CDATA[DlCGq+lWQuyjNNK+vDaO0zUltpdUW3u4V00WCzsdNzmZGEhrU7TPxG52viOKCWYPwTMbCzgbCtakZHyNxr5hjoZJ7ORAUYoIAGQy/LDWtAnYgDO+ppKLp0rDq+67Dv3yt+vatMQTh99NII6x9SEGpY3O2h8RpG99+NYevQiOLVKqiQYzan21sX/jE4Y3wZaeudsb4QVjqzRAPaCJ5nS3T31uIR9fjSRgHTDRDOzjQ1cHchge+t6faUhniN5VQVTE+wIYtmnejc55BmHYPfBnTkYah9+cTYnI3diUPJRRiyVocJyHlb+XOZN22dsx9yzKHBAyagaoDIV8Yyb/PahcUbsqGv5wziOgLJQIa6z93/VY7d2Kq2C2oBS+Qb+FI9jLhgc3RvCi+Yno2X3cWoqbsRwoovYdyg6jme/H7nMZn77PSxOGRt/dYiWx2NuBAF7fNFigmbRiive3DyOumNCMvA==]]></Encrypt>
 //</xml>
 func xmlUnmarshal(data []byte, p *cipherRequestHttpBody) error {
@@ -616,36 +614,36 @@ func xmlUnmarshal(data []byte, p *cipherRequestHttpBody) error {
 	}
 	data2 := data[len(msgStartElementLiteral) : len(data)-len(msgEndElementLiteral)]
 
-	// ToUserName
-	ToUserNameElementBytes := data2
-	i := bytes.Index(ToUserNameElementBytes, msgToUserNameStartElementLiteral)
+	// AppId
+	AppIdElementBytes := data2
+	i := bytes.Index(AppIdElementBytes, msgAppIdStartElementLiteral)
 	if i == -1 {
 		log.Printf("[WARNING] xmlUnmarshal failed, data:\n%s\n", data)
 		return xml.Unmarshal(data, p)
 	}
-	ToUserNameElementBytes = ToUserNameElementBytes[i+len(msgToUserNameStartElementLiteral):]
-	ToUserNameElementBytes = bytes.TrimLeftFunc(ToUserNameElementBytes, unicode.IsSpace)
-	if !bytes.HasPrefix(ToUserNameElementBytes, cdataStartLiteral) {
+	AppIdElementBytes = AppIdElementBytes[i+len(msgAppIdStartElementLiteral):]
+	AppIdElementBytes = bytes.TrimLeftFunc(AppIdElementBytes, unicode.IsSpace)
+	if !bytes.HasPrefix(AppIdElementBytes, cdataStartLiteral) {
 		log.Printf("[WARNING] xmlUnmarshal failed, data:\n%s\n", data)
 		return xml.Unmarshal(data, p)
 	}
-	ToUserNameElementBytes = ToUserNameElementBytes[len(cdataStartLiteral):]
-	i = bytes.Index(ToUserNameElementBytes, cdataEndLiteral)
+	AppIdElementBytes = AppIdElementBytes[len(cdataStartLiteral):]
+	i = bytes.Index(AppIdElementBytes, cdataEndLiteral)
 	if i == -1 {
 		log.Printf("[WARNING] xmlUnmarshal failed, data:\n%s\n", data)
 		return xml.Unmarshal(data, p)
 	}
-	ToUserName := ToUserNameElementBytes[:i]
-	ToUserNameElementBytes = ToUserNameElementBytes[i+len(cdataEndLiteral):]
-	ToUserNameElementBytes = bytes.TrimLeftFunc(ToUserNameElementBytes, unicode.IsSpace)
-	if !bytes.HasPrefix(ToUserNameElementBytes, msgToUserNameEndElementLiteral) {
+	AppId := AppIdElementBytes[:i]
+	AppIdElementBytes = AppIdElementBytes[i+len(cdataEndLiteral):]
+	AppIdElementBytes = bytes.TrimLeftFunc(AppIdElementBytes, unicode.IsSpace)
+	if !bytes.HasPrefix(AppIdElementBytes, msgAppIdEndElementLiteral) {
 		log.Printf("[WARNING] xmlUnmarshal failed, data:\n%s\n", data)
 		return xml.Unmarshal(data, p)
 	}
-	ToUserNameElementBytes = ToUserNameElementBytes[len(msgToUserNameEndElementLiteral):]
+	AppIdElementBytes = AppIdElementBytes[len(msgAppIdEndElementLiteral):]
 
 	// Encrypt
-	EncryptElementBytes := ToUserNameElementBytes
+	EncryptElementBytes := AppIdElementBytes
 	i = bytes.Index(EncryptElementBytes, msgEncryptStartElementLiteral)
 	if i == -1 {
 		EncryptElementBytes = data2
@@ -675,7 +673,7 @@ func xmlUnmarshal(data []byte, p *cipherRequestHttpBody) error {
 		return xml.Unmarshal(data, p)
 	}
 
-	p.ToUserName = string(ToUserName)
+	p.AppId = string(AppId)
 	p.Base64EncryptedMsg = Encrypt
 	return nil
 }
