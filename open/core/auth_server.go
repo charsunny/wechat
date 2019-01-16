@@ -352,21 +352,31 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 		err = fmt.Errorf("ticket empty. Server ticket is empty, get ticket latter\n")
 		return
 	}
-	url := "https://api.weixin.qq.com/cgi-bin/component/api_component_token&component_appid=" + srv.AppId() +
-		"&component_appsecret=" + srv.AppSecret() + "&component_verify_ticket=" + ticket
-	api.DebugPrintGetRequest(url)
-	httpResp, err := srv.httpClient.Get(url)
+	url := "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
+	fmt.Println(ticket, srv.appSecret, srv.appId)
+	httpResp, err := srv.httpClient.PostForm(url, map[string][]string{
+		"component_appid": {srv.AppId()},
+		"component_appsecret": {srv.AppSecret()},
+		"component_verify_ticket": {ticket},
+	})
 	if err != nil {
 		if lasttikect != "" {
-			url = "https://api.weixin.qq.com/cgi-bin/component/api_component_token&component_appid=" + srv.AppId() +
-				"&component_appsecret=" + srv.AppSecret() + "&component_verify_ticket=" + lasttikect
-		}
-		httpResp, err = srv.httpClient.Get(url)
-		if err != nil {
-			srv.removeLastComponentVerifyTicket(lasttikect)
+			httpResp, err = srv.httpClient.PostForm(url, map[string][]string{
+				"component_appid": {srv.AppId()},
+				"component_appsecret": {srv.AppSecret()},
+				"component_verify_ticket": {lasttikect},
+			})
+			if err != nil {
+				srv.removeLastComponentVerifyTicket(ticket)
+				atomic.StorePointer(&srv.tokenCache, nil)
+				return
+			}
+		} else {
+			srv.removeLastComponentVerifyTicket(ticket)
 			atomic.StorePointer(&srv.tokenCache, nil)
 			return
 		}
+
 	}
 
 	defer httpResp.Body.Close()
@@ -561,7 +571,8 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				errorHandler.ServeError(w, r, err)
 				return
 			}
-			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket);
+			fmt.Printf("get wechat server ticker: %v, %v\n", wantAppId, verifyTicket.ComponentVerifyTicket)
+			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket)
 			io.WriteString(w, "success")
 
 		default:
