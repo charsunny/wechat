@@ -46,7 +46,7 @@ func AuthWechatLink(appId, redirectURI, preAuthCode string, authType int) string
 	if authType == 0 {	// 如果auth type 是0 强制变成3 不然会出现授权错误
 		authType = 3
 	}
-	return "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&component_appid=" + url.QueryEscape(appId) +
+	return "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=" + url.QueryEscape(appId) +
 		"&redirect_uri=" + url.QueryEscape(redirectURI) +
 		"&pre_auth_code=" + preAuthCode +
 		"&auth_type=" + strconv.Itoa(authType) +
