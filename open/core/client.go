@@ -180,7 +180,7 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 		return fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
 	s, _ := ioutil.ReadAll(httpResp.Body) //把  body 内容读入字符串 s
-	fmt.Printf("resp body: %v \n", s)
+	fmt.Printf("resp body: %s \n", s)
 	return api.DecodeJSONHttpResponse(httpResp.Body, response)
 }
 
