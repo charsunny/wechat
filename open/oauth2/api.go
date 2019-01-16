@@ -74,17 +74,28 @@ func RefreshAuthInfo(clt *core.Client, appId string, refreshToken string) (authI
 
 // 获取授权方的授权信息
 // 获取授权app的具体信息
-func GetAuthAppInfo(clt *core.Client, appId string) (authInfo map[string]interface{}, err error) {
+func GetAuthAppInfo(clt *core.Client, appId string) (authorizer map[string]interface{}, authorization map[string]interface{}, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token="
+
+	var result struct{
+		core.Error
+		AuthorizerInfo map[string]interface{} `json:"authorizer_info"`
+		AuthorizationInfo map[string]interface{} `json:"authorization_info"`
+	}
 
 	req := map[string]interface{} {
 		"component_appid": clt.AuthServer.AppId(),
 		"authorizer_appid": appId,
 	}
-	authInfo = make(map[string]interface{})
-	if err = clt.PostJSON(incompleteURL, req, &authInfo); err != nil {
+
+	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
 		return
 	}
-
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	authorization = result.AuthorizationInfo
+	authorizer = result.AuthorizerInfo
 	return
 }
