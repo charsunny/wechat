@@ -133,7 +133,15 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 		refreshTokenResponseChan: make(chan refreshTokenResult),
 	}
 
-	go srv.tokenUpdateDaemon(time.Hour * 1)
+	go srv.tokenUpdateDaemon(time.Hour * 100)
+
+	// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
+	if srv.cacheProvider != nil {
+		if  ticker, ok := srv.cacheProvider.Get("component_ticker").(string); ok {
+			fmt.Printf("get cookie ticker: %s", ticker)
+			srv.setComponentVerifyTicket(ticker)
+		}
+	}
 
 	return
 }
@@ -444,14 +452,6 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 
 // ServeHTTP 处理微信服务器的回调请求, query 参数可以为 nil.
 func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query url.Values) {
-
-	// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
-	if srv.cacheProvider != nil {
-		if  ticker, ok := srv.cacheProvider.Get("component_ticker").(string); ok {
-			fmt.Printf("get cookie ticker: %s", ticker)
-			srv.setComponentVerifyTicket(ticker)
-		}
-	}
 
 	callback.DebugPrintRequest(r)
 	if query == nil {
