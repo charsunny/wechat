@@ -30,8 +30,8 @@ type AuthorizationInfo struct {
 func AuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
 	return "https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=" + url.QueryEscape(appId) +
 		"&redirect_uri=" + url.QueryEscape(redirectURI) +
-		"&pre_auth_code" + preAuthCode +
-		"&auth_type" + strconv.Itoa(authType)
+		"&pre_auth_code=" + preAuthCode +
+		"&auth_type=" + strconv.Itoa(authType)
 }
 
 // AuthH5Link 生成微信内点击的授权地址.
@@ -42,8 +42,8 @@ func AuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
 func AuthWechatLink(appId, redirectURI, preAuthCode string, authType int) string {
 	return "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&component_appid=" + url.QueryEscape(appId) +
 		"&redirect_uri=" + url.QueryEscape(redirectURI) +
-		"&pre_auth_code" + preAuthCode +
-		"&auth_type" + strconv.Itoa(authType) +
+		"&pre_auth_code=" + preAuthCode +
+		"&auth_type=" + strconv.Itoa(authType) +
 		"#wechat_redirect"
 }
 
