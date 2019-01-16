@@ -178,6 +178,7 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 	if httpResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
+	fmt.Printf("resp body: %v \n", httpResp.Body)
 	return api.DecodeJSONHttpResponse(httpResp.Body, response)
 }
 
