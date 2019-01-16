@@ -24,6 +24,18 @@ import (
 	"unsafe"
 )
 
+type Cache interface {
+	Get(key string) interface{}
+	GetMulti(keys []string) []interface{}
+	Put(key string, val interface{}, timeout time.Duration) error
+	Delete(key string) error
+	Incr(key string) error
+	Decr(key string) error
+	IsExist(key string) bool
+	ClearAll() error
+	StartAndGC(config string) error
+}
+
 // AuthServer 用于处理微信服务器的回调请求, 并发安全!
 //  通常情况下一个 AuthServer 实例用于处理一个开放平台的回调消息, 并且刷新平台的token和tickprovider;
 type AuthServer struct {
@@ -48,6 +60,8 @@ type AuthServer struct {
 	tokenCache unsafe.Pointer // *accessToken
 
 	errorHandler ErrorHandler
+
+	cacheProvider Cache
 }
 
 
@@ -81,8 +95,8 @@ type componentTicketBucket struct {
 //  token:        必须; 开放平台用于验证签名的token;
 //  base64AESKey: 必选; 开放平台处理ticket回掉的aeskey;
 //  handler:      必须; 处理微信服务器推送过来的消息(事件)的Handler;
-//  httpClient: 用于处理AuthServer在处理消息(事件)过程中产生的错误, 如果没有设置则默认使用 DefaultErrorHandler.
-func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *http.Client, errorHandler ErrorHandler) (srv *AuthServer) {
+//  cacheProvider: 用于缓存provider ticker的缓存， ticker 10分钟刷新一次， 如果服务器crash或者重启，10分钟内授权可能出问题.
+func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *http.Client, cacheProvider Cache) (srv *AuthServer) {
 	if token == "" {
 		panic("empty token")
 	}
@@ -91,9 +105,6 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 		httpClient = util.DefaultHttpClient
 	}
 
-	if errorHandler == nil {
-		errorHandler = DefaultErrorHandler
-	}
 
 	var (
 		aesKey []byte
@@ -115,8 +126,9 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 		tokenBucketPtr:  unsafe.Pointer(&tokenBucket{currentToken: token}),
 		aesKeyBucketPtr: unsafe.Pointer(&aesKeyBucket{currentAESKey: aesKey}),
 		componentVerifyTicketPtr: unsafe.Pointer(&componentTicketBucket{currentTikect: ""}),
-		errorHandler:    errorHandler,
+		errorHandler:    DefaultErrorHandler,
 		httpClient: httpClient,
+		cacheProvider: cacheProvider,
 		refreshTokenRequestChan:  make(chan string),
 		refreshTokenResponseChan: make(chan refreshTokenResult),
 	}
@@ -433,11 +445,12 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 // ServeHTTP 处理微信服务器的回调请求, query 参数可以为 nil.
 func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query url.Values) {
 
-	// 首先从cookie中读取上一次的保存的ticker provider， 不必从微信服务端获取
-	c, err := r.Cookie("component_ticker")
-	if err == nil {
-		fmt.Printf("get cookie ticker: %s", c.Value)
-		srv.setComponentVerifyTicket(c.Value)
+	// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
+	if srv.cacheProvider != nil {
+		if  ticker, ok := srv.cacheProvider.Get("component_ticker").(string); ok {
+			fmt.Printf("get cookie ticker: %s", ticker)
+			srv.setComponentVerifyTicket(ticker)
+		}
 	}
 
 	callback.DebugPrintRequest(r)
@@ -585,11 +598,10 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 			fmt.Printf("get wechat server ticker: %v, %v\n", wantAppId, verifyTicket.ComponentVerifyTicket)
 			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket)
 			// set cookie for later user
-			http.SetCookie(w, &http.Cookie{
-				Name: "component_ticker",
-				Value: verifyTicket.ComponentVerifyTicket,
-				Expires: time.Now().Add(time.Duration(10 * 60 * time.Second)), //设置过期时间是9分钟，通常verfiyticker是10分钟刷新一次，但是有效期比10分钟长
-			})
+			// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
+			if srv.cacheProvider != nil {	// 做10分钟的缓存，用于服务器恢复缓存
+				srv.cacheProvider.Put("component_ticker", verifyTicket.ComponentVerifyTicket, time.Duration(time.Second * 10 * 60))
+			}
 			io.WriteString(w, "success")
 
 		default:
