@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"github.com/charsunny/wechat/open/core"
+	"fmt"
 )
 
 // 获取预授权码 配合 授权链接获取的authcode 一起服用， 换取token
@@ -16,6 +17,7 @@ func GetPreAuthCode(clt *core.Client) (code string, err error) {
 	if err = clt.PostJSON(incompleteURL, map[string]interface{} {"component_appid": clt.AuthServer.AppId()}, &result); err != nil {
 		return
 	}
+	fmt.Printf("%v, %v", result.ErrCode, result.ErrMsg)
 	if result.ErrCode != core.ErrCodeOK {
 		err = &result.Error
 		return

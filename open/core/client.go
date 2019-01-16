@@ -181,7 +181,12 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 	}
 	s, _ := ioutil.ReadAll(httpResp.Body) //把  body 内容读入字符串 s
 	fmt.Printf("resp body: %s \n", s)
-	return api.DecodeJSONHttpResponse(httpResp.Body, response)
+	err = json.Unmarshal(s, response)
+	if err != nil {
+		fmt.Printf("json decode err: %v\n", err)
+	}
+	return err
+	 //api.DecodeJSONHttpResponse(httpResp.Body, response)
 }
 
 // checkResponse 检查 response 参数是否满足特定的结构要求, 如果不满足要求则会 panic, 否则返回相应的 reflect.Value.
