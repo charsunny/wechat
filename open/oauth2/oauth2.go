@@ -7,18 +7,12 @@ import (
 	"strconv"
 )
 
-type AuthFuncInfo struct {
-	Category struct{
-		Id int `json:"id"`
-	} `json:"funcscope_category"`
-}
-
 type AuthorizationInfo struct {
 	AppId string `json:"authorizer_appid"`
 	AccessToken string `json:"authorizer_access_token"`
 	ExpiresIn int `json:"expires_in"`
 	RefreshToken string `json:"authorizer_refresh_token"`
-	FuncInfo [] *AuthFuncInfo `json:"func_info"`
+	FuncInfo [] map[string]interface{} `json:"func_info"`
 
 }
 
