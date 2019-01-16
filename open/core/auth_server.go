@@ -110,9 +110,7 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 		}
 	}
 
-	go srv.tokenUpdateDaemon(time.Hour * 24 * time.Duration(100+rand.Int63n(200)))
-
-	return &AuthServer{
+	srv = &AuthServer{
 		appId:           appId,
 		appSecret: appSecret,
 		tokenBucketPtr:  unsafe.Pointer(&tokenBucket{currentToken: token}),
@@ -123,6 +121,10 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 		refreshTokenRequestChan:  make(chan string),
 		refreshTokenResponseChan: make(chan refreshTokenResult),
 	}
+
+	go srv.tokenUpdateDaemon(time.Hour * 24 * time.Duration(100+rand.Int63n(200)))
+
+	return
 }
 
 func (srv *AuthServer) getComponentVerifyTicket() (currentTicket, lastTicket string) {
@@ -293,6 +295,7 @@ func (srv *AuthServer) tokenUpdateDaemon(initTickDuration time.Duration) {
 
 NEW_TICK_DURATION:
 	ticker := time.NewTicker(tickDuration)
+
 	for {
 		select {
 		case currentToken := <-srv.refreshTokenRequestChan:
@@ -337,6 +340,7 @@ type componentAccessToken struct {
 
 // updateToken 从微信服务器获取新的 access_token 并存入缓存, 同时返回该 access_token.
 func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessToken, cached bool, err error) {
+
 	if currentToken != "" {
 		if p := (*componentAccessToken)(atomic.LoadPointer(&srv.tokenCache)); p != nil && currentToken != p.Token {
 			return p, true, nil // 无需更改 p.ExpiresIn 参数值, cached == true 时用不到
@@ -557,7 +561,7 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				errorHandler.ServeError(w, r, err)
 				return
 			}
-
+			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket);
 			io.WriteString(w, "success")
 
 		default:
