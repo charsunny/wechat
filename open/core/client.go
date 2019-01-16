@@ -12,6 +12,7 @@ import (
 	"github.com/charsunny/wechat/internal/debug/api"
 	"github.com/charsunny/wechat/internal/debug/api/retry"
 	"github.com/charsunny/wechat/util"
+	"io/ioutil"
 )
 
 type Client struct {
@@ -178,7 +179,8 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 	if httpResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
-	fmt.Printf("resp body: %v \n", httpResp.Body)
+	s, _ := ioutil.ReadAll(httpResp.Body) //把  body 内容读入字符串 s
+	fmt.Printf("resp body: %v \n", s)
 	return api.DecodeJSONHttpResponse(httpResp.Body, response)
 }
 
