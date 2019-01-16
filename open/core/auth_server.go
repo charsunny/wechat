@@ -602,7 +602,7 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 			// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
 			if srv.cacheProvider != nil {	// 做10分钟的缓存，用于服务器恢复缓存
 				srv.cacheProvider.Delete("component_ticker")	// 删除老的 添加新的
-				srv.cacheProvider.Put("component_ticker", verifyTicket.ComponentVerifyTicket, time.Duration(time.Second * 10 * 60))
+				srv.cacheProvider.Put("component_ticker", verifyTicket.ComponentVerifyTicket, time.Duration(time.Second * 60 * 60))	 // 缓存1小时，方便调用
 			}
 			io.WriteString(w, "success")
 
