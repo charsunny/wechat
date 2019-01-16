@@ -568,6 +568,7 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 			errorHandler.ServeError(w, r, errors.New("unknown encrypt_type: "+encryptType))
 		}
 	}
+	io.WriteString(w, "success")
 }
 
 // =====================================================================================================================
