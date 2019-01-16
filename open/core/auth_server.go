@@ -137,8 +137,9 @@ func NewAuthServer(appId, appSecret, token, base64AESKey string, httpClient *htt
 
 	// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
 	if srv.cacheProvider != nil {
+		fmt.Printf("get cache provider: %v", srv.cacheProvider)
 		if  ticker, ok := srv.cacheProvider.Get("component_ticker").(string); ok {
-			fmt.Printf("get cookie ticker: %s", ticker)
+			fmt.Printf("get coo ticker: %s", ticker)
 			srv.setComponentVerifyTicket(ticker)
 		}
 	}
