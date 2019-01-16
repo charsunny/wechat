@@ -7,7 +7,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/chanxuehong/util/security"
+	"github.com/charsunny/wechat/util/security"
 	"github.com/charsunny/wechat/internal/debug/api"
 	"github.com/charsunny/wechat/internal/debug/callback"
 	iutil "github.com/charsunny/wechat/internal/util"

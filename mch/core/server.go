@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/chanxuehong/util"
-	"github.com/chanxuehong/util/security"
+	"github.com/charsunny/wechat/util"
+	"github.com/charsunny/wechat/util/security"
 
 	"github.com/charsunny/wechat/internal/debug/mch/callback"
 )

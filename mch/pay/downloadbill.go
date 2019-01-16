@@ -13,7 +13,7 @@ import (
 	"os"
 	"unicode"
 
-	"github.com/chanxuehong/util"
+	"github.com/charsunny/wechat/util"
 
 	"github.com/charsunny/wechat/mch/core"
 	wechatutil "github.com/charsunny/wechat/util"

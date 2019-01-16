@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/chanxuehong/rand"
-	"github.com/chanxuehong/session"
-	"github.com/chanxuehong/sid"
+	"github.com/charsunny/wechat/rand"
+	"github.com/charsunny/wechat/session"
+	"github.com/charsunny/wechat/sid"
 	mpoauth2 "github.com/charsunny/wechat/mp/oauth2"
 	"github.com/charsunny/wechat/oauth2"
 )

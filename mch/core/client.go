@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chanxuehong/util"
+	"github.com/charsunny/wechat/util"
 
 	"github.com/charsunny/wechat/internal/debug/mch/api"
 	wechatutil "github.com/charsunny/wechat/util"

@@ -17,7 +17,7 @@ import (
 	"unicode"
 	"unsafe"
 
-	"github.com/chanxuehong/util/security"
+	"github.com/charsunny/wechat/util/security"
 
 	"github.com/charsunny/wechat/internal/debug/callback"
 	"github.com/charsunny/wechat/internal/util"

@@ -28,6 +28,9 @@ type AuthorizationInfo struct {
 // authType : 1则商户点击链接后，手机端仅展示公众号、2表示仅展示小程序，3表示公众号和小程序都展示。如果为未指定，则默认小程序和公众号都展示
 //  redirectURI: 授权后重定向的回调链接地址
 func AuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
+	if authType == 0 {	// 如果auth type 是0 强制变成3 不然会出现授权错误
+		authType = 3
+	}
 	return "https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=" + url.QueryEscape(appId) +
 		"&redirect_uri=" + url.QueryEscape(redirectURI) +
 		"&pre_auth_code=" + preAuthCode +
@@ -40,6 +43,9 @@ func AuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
 // 	authType : 1则商户点击链接后，手机端仅展示公众号、2表示仅展示小程序，3表示公众号和小程序都展示。如果为未指定，则默认小程序和公众号都展示
 //  redirectURI: 授权后重定向的回调链接地址
 func AuthWechatLink(appId, redirectURI, preAuthCode string, authType int) string {
+	if authType == 0 {	// 如果auth type 是0 强制变成3 不然会出现授权错误
+		authType = 3
+	}
 	return "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&component_appid=" + url.QueryEscape(appId) +
 		"&redirect_uri=" + url.QueryEscape(redirectURI) +
 		"&pre_auth_code=" + preAuthCode +

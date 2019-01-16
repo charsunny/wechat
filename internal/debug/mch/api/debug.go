@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/chanxuehong/util"
+	"github.com/charsunny/wechat/util"
 )
 
 func DebugPrintGetRequest(url string) {
