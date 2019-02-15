@@ -16,12 +16,12 @@ type AuthorizationInfo struct {
 
 }
 
-// AuthWebURL 生成网页授权地址.
+// AuthWebURL 生成网页连接的开放平台授权地址.
 //  appId:       开放平台
 // 	preAuthCode: 预授权code， 从平台获取
 // authType : 1则商户点击链接后，手机端仅展示公众号、2表示仅展示小程序，3表示公众号和小程序都展示。如果为未指定，则默认小程序和公众号都展示
 //  redirectURI: 授权后重定向的回调链接地址
-func AuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
+func OpenAuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
 	if authType == 0 {	// 如果auth type 是0 强制变成3 不然会出现授权错误
 		authType = 3
 	}
@@ -31,12 +31,12 @@ func AuthWebURL(appId, redirectURI, preAuthCode string, authType int) string {
 		"&auth_type=" + strconv.Itoa(authType)
 }
 
-// AuthH5Link 生成微信内点击的授权地址.
+// OpenAuthWechatLink 生成微信内点击的开放平台授权地址.
 //  appId:       开放平台
 // 	preAuthCode: 预授权code， 从平台获取
 // 	authType : 1则商户点击链接后，手机端仅展示公众号、2表示仅展示小程序，3表示公众号和小程序都展示。如果为未指定，则默认小程序和公众号都展示
 //  redirectURI: 授权后重定向的回调链接地址
-func AuthWechatLink(appId, redirectURI, preAuthCode string, authType int) string {
+func OpenAuthWechatLink(appId, redirectURI, preAuthCode string, authType int) string {
 	if authType == 0 {	// 如果auth type 是0 强制变成3 不然会出现授权错误
 		authType = 3
 	}
@@ -47,11 +47,24 @@ func AuthWechatLink(appId, redirectURI, preAuthCode string, authType int) string
 		"#wechat_redirect"
 }
 
+// WebAuthCodeURL 生成网页授权地址.
+//  appId:       网页的唯一标识
+//  redirectURI: 授权后重定向的回调链接地址
+//  scope:       应用授权作用域
+//  state:       重定向后会带上 state 参数, 开发者可以填写 a-zA-Z0-9 的参数值, 最多128字节
+func WebAuthCodeURL(appId, redirectURI, scope, state string) string {
+	return "https://open.weixin.qq.com/connect/qrconnect?appid=" + url.QueryEscape(appId) +
+		"&redirect_uri=" + url.QueryEscape(redirectURI) +
+		"&response_type=code&scope=" + url.QueryEscape(scope) +
+		"&state=" + url.QueryEscape(state) +
+		"#wechat_redirect"
+}
+
 // Auth 检验授权凭证 access_token 是否有效.
 //  accessToken: 网页授权接口调用凭证
 //  openId:      用户的唯一标识
 //  httpClient:  如果不指定则默认为 util.DefaultHttpClient
-func Auth(accessToken, openId string, httpClient *http.Client) (valid bool, err error) {
+func WebAuth(accessToken, openId string, httpClient *http.Client) (valid bool, err error) {
 	return mpoauth2.Auth(accessToken, openId, httpClient)
 }
 

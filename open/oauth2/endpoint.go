@@ -7,10 +7,7 @@ import (
 
 var _ oauth2.Endpoint = (*Endpoint)(nil)
 
-type Endpoint struct {
-	AppId     string
-	AppSecret string
-}
+type Endpoint mpoauth2.Endpoint
 
 func NewEndpoint(AppId, AppSecret string) *Endpoint {
 	return (*Endpoint)(mpoauth2.NewEndpoint(AppId, AppSecret))
