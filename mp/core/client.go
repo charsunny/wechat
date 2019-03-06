@@ -11,6 +11,7 @@ import (
 	"github.com/charsunny/wechat/internal/debug/api"
 	"github.com/charsunny/wechat/internal/debug/api/retry"
 	"github.com/charsunny/wechat/util"
+	"io/ioutil"
 )
 
 type Client struct {
@@ -126,7 +127,6 @@ func (clt *Client) PostJSON(incompleteURL string, request interface{}, response 
 	if i := len(requestBodyBytes) - 1; i >= 0 && requestBodyBytes[i] == '\n' {
 		requestBodyBytes = requestBodyBytes[:i] // 去掉最后的 '\n', 这样能统一log格式, 不然可能多一个空白行
 	}
-
 	httpClient := clt.HttpClient
 	if httpClient == nil {
 		httpClient = util.DefaultHttpClient
@@ -134,7 +134,6 @@ func (clt *Client) PostJSON(incompleteURL string, request interface{}, response 
 
 	token, err := clt.Token()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
@@ -228,7 +227,8 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 		return err
 	}
 	defer httpResp.Body.Close()
-
+	s, _ := ioutil.ReadAll(httpResp.Body) //把  body 内容读入字符串 s
+	fmt.Printf("req: %s, resp body: %s \n", url, s)
 	if httpResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
