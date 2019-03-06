@@ -194,6 +194,7 @@ func (clt *Client) PostData(incompleteURL string, requestBodyBytes []byte, respo
 RETRY:
 	finalURL := incompleteURL + url.QueryEscape(token)
 	if err = httpPostJSON(httpClient, finalURL, requestBodyBytes, response); err != nil {
+		fmt.Println(err)
 		return
 	}
 
