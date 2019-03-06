@@ -61,13 +61,13 @@ type MixedMsg struct {
 
 	MsgID    int64  `xml:"MsgID"  json:"MsgID"`  // template, mass
 	Status   string `xml:"Status" json:"Status"` // template, mass
-	*mass           // mass
-	*account        // account
-	*dkf            // dkf
-	*poi            // poi
-	*card           // card
-	*bizwifi        // bizwifi
-	*file           // MsgType is file
+	*Mass           // mass
+	*Account        // account
+	*Dkf            // dkf
+	*Poi            // poi
+	*Card           // card
+	*BizWifi        // bizwifi
+	*File           // MsgType is file
 
 	// shakearound
 	ChosenBeacon *struct {
@@ -84,7 +84,7 @@ type MixedMsg struct {
 	} `xml:"AroundBeacons>AroundBeacon,omitempty" json:"AroundBeacons,omitempty"`
 }
 
-type mass struct {
+type Mass struct {
 	//MsgID       int64  `xml:"MsgID"       json:"MsgID"`
 	//Status      string `xml:"Status"      json:"Status"`
 	TotalCount  int `xml:"TotalCount"  json:"TotalCount"`
@@ -93,26 +93,26 @@ type mass struct {
 	ErrorCount  int `xml:"ErrorCount"  json:"ErrorCount"`
 }
 
-type account struct {
+type Account struct {
 	ExpiredTime int64  `xml:"ExpiredTime" json:"ExpiredTime"`
 	FailTime    int64  `xml:"FailTime"    json:"FailTime"`
 	FailReason  string `xml:"FailReason"  json:"FailReason"`
 }
 
-type dkf struct {
+type Dkf struct {
 	KfAccount     string `xml:"KfAccount"     json:"KfAccount"`
 	FromKfAccount string `xml:"FromKfAccount" json:"FromKfAccount"`
 	ToKfAccount   string `xml:"ToKfAccount"   json:"ToKfAccount"`
 }
 
-type poi struct {
+type Poi struct {
 	UniqId string `xml:"UniqId" json:"UniqId"`
 	PoiId  int64  `xml:"PoiId"  json:"PoiId"`
 	Result string `xml:"Result" json:"Result"`
 	Msg    string `xml:"Msg"    json:"Msg"`
 }
 
-type card struct {
+type Card struct {
 	CardId              string `xml:"CardId"              json:"CardId"`
 	RefuseReason        string `xml:"RefuseReason"        json:"RefuseReason"`
 	IsGiveByFriend      int    `xml:"IsGiveByFriend"      json:"IsGiveByFriend"`
@@ -135,7 +135,7 @@ type card struct {
 	OrderId             string `xml:"OrderId"             json:"OrderId"`
 }
 
-type bizwifi struct {
+type BizWifi struct {
 	ConnectTime int64  `xml:"ConnectTime" json:"ConnectTime"`
 	ExpireTime  int64  `xml:"ExpireTime"  json:"ExpireTime"`
 	VendorId    string `xml:"VendorId"    json:"VendorId"`
@@ -143,7 +143,7 @@ type bizwifi struct {
 	DeviceNo    string `xml:"DeviceNo"    json:"DeviceNo"`
 }
 
-type file struct {
+type File struct {
 	FileKey      string `xml:"FileKey"      json:"FileKey"`
 	FileMd5      string `xml:"FileMd5"      json:"FileMd5"`
 	FileTotalLen string `xml:"FileTotalLen" json:"FileTotalLen"`

@@ -605,7 +605,7 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				srv.cacheProvider.Put("component_ticker", verifyTicket.ComponentVerifyTicket, time.Duration(time.Second * 60 * 60))	 // 缓存1小时，方便调用
 			}
 			io.WriteString(w, "success")
-
+			return
 		default:
 			errorHandler.ServeError(w, r, errors.New("unknown encrypt_type: "+encryptType))
 		}
