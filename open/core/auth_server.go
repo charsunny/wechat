@@ -596,7 +596,6 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				errorHandler.ServeError(w, r, err)
 				return
 			}
-			fmt.Printf("get wechat server ticker: %v, %v\n", wantAppId, verifyTicket.ComponentVerifyTicket)
 			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket)
 			// set cookie for later user
 			// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
@@ -604,8 +603,9 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				srv.cacheProvider.Delete("component_ticker")	// 删除老的 添加新的
 				srv.cacheProvider.Put("component_ticker", verifyTicket.ComponentVerifyTicket, time.Duration(time.Second * 60 * 60))	 // 缓存1小时，方便调用
 			}
+			fmt.Printf("get wechat server ticker: %v, %v, %v\n", wantAppId, verifyTicket.ComponentVerifyTicket, w.Header())
 			io.WriteString(w, "success")
-
+			return
 		default:
 			errorHandler.ServeError(w, r, errors.New("unknown encrypt_type: "+encryptType))
 		}
