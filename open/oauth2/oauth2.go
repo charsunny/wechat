@@ -60,6 +60,17 @@ func WebAuthCodeURL(appId, redirectURI, scope, state string) string {
 		"#wechat_redirect"
 }
 
+// FastRegisterWxaLink 快速注册小程序的开放平台连接.
+// appId:       公众号的 appid
+// component_appid: 第三方平台的appid
+// redirectURI: 授权后重定向的回调链接地址
+// 公众号管理员扫码后在手机端完成授权确认。
+// 跳转回第三方平台，会在上述 redirect_uri后拼接 ticket=*
+func FastRegisterWxaLink(appId, componentAppid, redirectURI string) string {
+	return "https://mp.weixin.qq.com/cgi-bin/fastregisterauth?copy_wx_verify=1&component_appid=" + url.QueryEscape(componentAppid)  +
+		"&appid=" + url.QueryEscape(appId) + "&redirect_uri=" + url.QueryEscape(redirectURI)
+}
+
 // Auth 检验授权凭证 access_token 是否有效.
 //  accessToken: 网页授权接口调用凭证
 //  openId:      用户的唯一标识
