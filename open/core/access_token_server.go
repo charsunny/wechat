@@ -84,6 +84,7 @@ func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token st
 	}
 
 	token = result.authorizationInfo.AccessToken
+	srv.token = token
 	return
 }
 
