@@ -134,6 +134,7 @@ func (clt *Client) PostJSON(incompleteURL string, request interface{}, response 
 
 	token, err := clt.Token()
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
@@ -143,7 +144,7 @@ RETRY:
 	if err = httpPostJSON(httpClient, finalURL, requestBodyBytes, response); err != nil {
 		return
 	}
-
+	fmt.Println(err)
 	switch errCode := ErrorErrCodeValue.Int(); errCode {
 	case ErrCodeOK:
 		return

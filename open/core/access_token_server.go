@@ -2,6 +2,7 @@ package core
 
 import (
 	"net/url"
+	"fmt"
 )
 
 
@@ -58,7 +59,7 @@ func (srv *DefaultAccessTokenServer) Token() (token string, err error) {
 
 func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token string, err error) {
 
-	url := "https:// api.weixin.qq.com /cgi-bin/component/api_authorizer_token?component_access_token="
+	url := "https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token="
 	params := map[string]interface{} {
 		"component_appid": srv.client.AuthServer.AppId(),
 		"authorizer_appid": srv.appId,
@@ -78,6 +79,7 @@ func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token st
 
 	if result.ErrCode != ErrCodeOK {
 		err = &result.Error
+		fmt.Println(err)
 		return
 	}
 
