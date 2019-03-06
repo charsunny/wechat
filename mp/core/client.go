@@ -229,11 +229,15 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 	}
 	defer httpResp.Body.Close()
 	s, _ := ioutil.ReadAll(httpResp.Body) //把  body 内容读入字符串 s
-	fmt.Printf("req: %s, resp body: %s \n", url, s)
 	if httpResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
-	return api.DecodeJSONHttpResponse(httpResp.Body, response)
+	fmt.Printf("resp body: %s \n", s)
+	err = json.Unmarshal(s, response)
+	if err != nil {
+		fmt.Printf("json decode err: %v\n", err)
+	}
+	return err
 }
 
 // checkResponse 检查 response 参数是否满足特定的结构要求, 如果不满足要求则会 panic, 否则返回相应的 reflect.Value.
