@@ -67,12 +67,10 @@ func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token st
 	}
 	var result struct{
 		Error
-		authorizationInfo struct {
-			AppId string `json:"authorizer_appid"`
-			AccessToken string `json:"authorizer_access_token"`
-			ExpiresIn int `json:"expires_in"`
-			RefreshToken string `json:"authorizer_refresh_token"`
-		} `json:"authorization_info"`
+		AppId string `json:"authorizer_appid"`
+		AccessToken string `json:"authorizer_access_token"`
+		ExpiresIn int `json:"expires_in"`
+		RefreshToken string `json:"authorizer_refresh_token"`
 	}
 
 	srv.client.PostJSON(url, params, &result)
@@ -83,7 +81,7 @@ func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token st
 		return
 	}
 
-	token = result.authorizationInfo.AccessToken
+	token = result.AccessToken
 	srv.token = token
 	return
 }
