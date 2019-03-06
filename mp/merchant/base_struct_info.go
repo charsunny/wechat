@@ -1,9 +1,10 @@
-package menu
+package merchant
 
 // DatabaseTable
 
 //  商品
 type Product struct {
+	ProductId string `json:"core.Error"`
 	ProductBase *ProductBase `json:"product_base"`
 	SkuList []*SkuItem	`json:"sku_list"`
 	AttrExt *AttrExt 	`json:"attrext"`
@@ -12,12 +13,15 @@ type Product struct {
 
 type ProductBase struct {
 	CategoryId []string                     `json:"category_id"`
-	Property   []*Property          `json:"property"`
+	Property   []* struct {
+		Id  string `json:"id"`
+		Vid string `json:"vid"`
+	}          `json:"property"`
 	Name       string                       `json:"name"`
 	SkuInfo    []*SkuInfo           `json:"sku_info"`
 	MainImg    string                       `json:"main_img"`
 	Img        []string                     `json:"img"`
-	Detail     []*ProductBaseDetail `json:"detail"`
+	Detail     []*ProductDetail `json:"detail"`
 	BuyLimit   int                          `json:"buy_limit"`
 }
 
@@ -33,54 +37,31 @@ type SkuItem struct {
 
 // Express 快递模板
 type Express struct {
-	TemplateId int    `json:"template_id"`
-	Name       string `json:"name"`
-	Assumer    int    `json:"assumer"`
-	Valuation  int    `json:"valuation"`
-	TopFee     string `json:"top_fee"`
-	CreateTime string
+	TemplateId int    `json:"Id"`
+	Name      string       `json:"Name"`		// 邮费模板名称
+	Assumer   int          `json:"Assumer"`		// 支付方式(0-买家承担运费, 1-卖家承担运费)
+	Valuation int          `json:"Valuation"`	// 计费单位(0-按件计费, 1-按重量计费, 2-按体积计费，目前只支持按件计费，默认为0)
+	TopFee    []*TopFeeItem `json:"TopFee"`	// 具体运费计算
 }
 
-// API Struct
-type ExpressTemplate struct {
-	Name      string       `json:"name"`
-	Assumer   int          `json:"assumer"`
-	Valuation int          `json:"valuation"`
-	TopFee    []TopFeeItem `json:"top_fee"`
-}
-
+// Express 快递费用模板
 type TopFeeItem struct {
-	Type   int `json:"Type"`
-	Normal struct {
-		StartStandards int `json:"StartStandards"`
-		StartFees      int `json:"StartFees"`
-		AddStandards   int `json:"AddStandards"`
-		AddFees        int `json:"AddFees"`
+	Type   int `json:"Type"`		// 快递类型ID(参见增加商品/快递列表)
+	Normal struct {	// 默认邮费计算方法
+		StartStandards int `json:"StartStandards"`	// 起始计费数量(比如计费单位是按件, 填2代表起始计费为2件)
+		StartFees      int `json:"StartFees"`	// 起始计费金额(单位: 分）
+		AddStandards   int `json:"AddStandards"`	// 递增计费数量
+		AddFees        int `json:"AddFees"`	// 递增计费金额(单位 : 分)
 	} `json:"Normal"`
-	Custom []struct {
+	Custom []struct {	// 指定地区邮费计算方法
 		StartStandards int    `json:"StartStandards"`
 		StartFees      int    `json:"StartFees"`
 		AddStandards   int    `json:"AddStandards"`
 		AddFees        int    `json:"AddFees"`
-		DestCountry    string `json:"DestCountry"`
-		DestProvince   string `json:"DestProvince"`
-		DestCity       string `json:"DestCity"`
+		DestCountry    string `json:"DestCountry"`	// 指定国家(详见《地区列表》说明)
+		DestProvince   string `json:"DestProvince"`	// 指定省份(详见《地区列表》说明)
+		DestCity       string `json:"DestCity"`	// 指定城市(详见《地区列表》说明)
 	} `json:"Custom"`
-}
-
-type AddExpressTemplateRequest struct {
-	ExpressTemplate ExpressTemplate `json:"delivery_template"`
-}
-
-type AddExpressTemplateResponse struct {
-	TemplateId string `json:"template_id"`
-	ErrCode    int    `json:"errcode"`
-	ErrMsg     string `json:"errmsg"`
-}
-
-type Property struct {
-	Id  string `json:"id"`
-	Vid string `json:"vid"`
 }
 
 type SkuInfo struct {
@@ -88,7 +69,7 @@ type SkuInfo struct {
 	Vid []string `json:"vid"`
 }
 
-type ProductBaseDetail struct {
+type ProductDetail struct {
 	Text string `json:"text"`
 	Img  string `json:"img`
 }
@@ -118,8 +99,8 @@ type AttrExt struct {
 }
 
 type DeliveryInfo struct {
-	DeliveryType int                            `json:"delivery_type"`
-	TemplateId   int                            `json:"template_id"`
+	DeliveryType int                            `json:"delivery_type"`	// 运费类型(0-使用下面express字段的默认模板, 1-使用template_id代表的邮费模板, 详见邮费模板相关API)
+	TemplateId   string                            `json:"template_id"`
 	Express      []*DeliveryInfoExpress `json:"express"`
 }
 
@@ -128,81 +109,10 @@ type DeliveryInfoExpress struct {
 	Price int64 `json:"price"`
 }
 
-type AddRequest struct {
-	ProductBase  ProductBase   `json:"product_base"`
-	SkuList      []SkuListItem `json:"sku_list"`
-	AttrExt      AttrExt       `json:"attrext"`
-	DeliveryInfo *DeliveryInfo  `json:"delivery_info"`
-}
-
-type AddResponse struct {
-	ProductId string `json:"product_id"`
-	ErrCode   int    `json:"errcode"`
-	ErrMsg    string `json:"errmsg"`
-}
-
-type DeleteRequest struct {
-	ProductId string `json:"product_id"`
-}
-
-type UpdateRequest struct {
-	ProductId    string                 `json:"product_id"`
-	ProductBase  ProductBase   `json:"product_base"`
-	SkuList      []*SkuListItem `json:"sku_list"`
-	AttrExt      AttrExt       `json:"attrext"`
-	DeliveryInfo *DeliveryInfo  `json:"delivery_info"`
-}
-
-type Detail struct {
-	ProductId    string                 `json:"product_id"`
-	ProductBase  ProductBase   `json:"product_base"`
-	SkuList      []*SkuListItem `json:"sku_list"`
-	AttrExt      AttrExt       `json:"attrext"`
-	DeliveryInfo *DeliveryInfo  `json:"delivery_info"`
-}
-
-type GetRequest struct {
-	ProductId string `json:"product_id"`
-}
-
-type GetResponse struct {
-	ProductInfo Detail `json:"product_info"`
-	ErrCode     int             `json:"errcode"`
-	ErrMsg      string          `json:"errmsg"`
-}
-
-type GetByStatusRequest struct {
-	Status int `json:"status"`
-}
-
-type GetByStatusResponse struct {
-	ProductInfo []Detail `json:"product_info"`
-	ErrCode     int               `json:"errcode"`
-	ErrMsg      string            `json:"errmsg"`
-}
-
-type UpdateStatusRequest struct {
-	ProductId       string `json:"product_id"`
-	Status int    `json:"status"`
-}
-
-type GetSubClassesByClassifyRequest struct {
-	CateId int64 `json:"cate_id"`
-}
 
 type CateInfo struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
-}
-
-type GetSubClassesByClassifyResponse struct {
-	CateList []CateInfo `json:"cate_list"`
-	ErrCode  int                 `json:"errcode"`
-	ErrMsg   string              `json:"errmsg"`
-}
-
-type GetAllSkuByClassifyRequest struct {
-	CateId string `json:"cate_id"`
 }
 
 type SkuValueList struct {
@@ -216,31 +126,15 @@ type SkuTable struct {
 	ValueList []SkuValueList `json:"value_list"`
 }
 
-type GetAllSkuByClassifyResponse struct {
-	SkuTable SkuTable `json:"sku_table"`
-	ErrCode  int               `json:"errcode"`
-	ErrMsg   string            `json:"errmsg"`
-}
-
-type GetAllPropertyByClassifyRequest struct {
-	CateId string `json:"cate_id"`
-}
-
-type ClassifyPropertyValue struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-type ClassifyProperty struct {
+type CateProperty struct {
 	Id            string                           `json:"id"`
 	Name          string                           `json:"name"`
-	PropertyValue []ClassifyPropertyValue `json:"property_value"`
+	PropertyValue []*CateProperty `json:"property_value"`
 }
 
-type GetAllPropertyByClassifyResponse struct {
-	Properties ClassifyProperty `json:"properties"`
-	ErrCode    int                       `json:"errcode"`
-	ErrMsg     string                    `json:"errmsg"`
+type PropertyValue struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type StockSkuInfo struct {
@@ -248,14 +142,8 @@ type StockSkuInfo struct {
 	Vid string
 }
 
-type AddStockRequest struct {
-	ProductId string
-	SkuInfo   []StockSkuInfo
-	Quantity  int
-}
-
-type CReduceStockRequest struct {
-	ProductId string
-	SkuInfo   []StockSkuInfo
-	Quantity  int
+type GroupInfo struct {
+	GroupId   string `json:"group_id"`
+	GroupName string `json:"group_name"`
+	ProductList []string `json:"product_list"`
 }

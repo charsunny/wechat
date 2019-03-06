@@ -166,6 +166,60 @@ RETRY:
 	}
 }
 
+// PostData  HTTP POST 到微信服务器,
+// 然后将微信服务器返回的 JSON 用 encoding/json 解析到 response.
+//
+//  NOTE:
+//  1. 一般不需要调用这个方法, 请直接调用高层次的封装函数;
+//  2. 最终的 URL == incompleteURL + access_token;
+//  3. response 格式有要求, 要么是 *Error, 要么是下面结构体的指针(注意 Error 必须是第一个 Field):
+//      struct {
+//          Error
+//          ...
+//      }
+func (clt *Client) PostData(incompleteURL string, requestBodyBytes []byte, response interface{}) (err error) {
+	ErrorStructValue, ErrorErrCodeValue := checkResponse(response)
+
+	httpClient := clt.HttpClient
+	if httpClient == nil {
+		httpClient = util.DefaultHttpClient
+	}
+
+	token, err := clt.Token()
+	if err != nil {
+		return
+	}
+
+	hasRetried := false
+RETRY:
+	finalURL := incompleteURL + url.QueryEscape(token)
+	if err = httpPostJSON(httpClient, finalURL, requestBodyBytes, response); err != nil {
+		return
+	}
+
+	switch errCode := ErrorErrCodeValue.Int(); errCode {
+	case ErrCodeOK:
+		return
+	case ErrCodeInvalidCredential, ErrCodeAccessTokenExpired:
+		errMsg := ErrorStructValue.Field(errorErrMsgIndex).String()
+		retry.DebugPrintError(errCode, errMsg, token)
+		if !hasRetried {
+			hasRetried = true
+			ErrorStructValue.Set(errorZeroValue)
+			if token, err = clt.RefreshToken(token); err != nil {
+				return
+			}
+			retry.DebugPrintNewToken(token)
+			goto RETRY
+		}
+		retry.DebugPrintFallthrough(token)
+		fallthrough
+	default:
+		return
+	}
+}
+
+
 func httpPostJSON(clt *http.Client, url string, body []byte, response interface{}) error {
 	api.DebugPrintPostJSONRequest(url, body)
 	httpResp, err := clt.Post(url, "application/json; charset=utf-8", bytes.NewReader(body))
