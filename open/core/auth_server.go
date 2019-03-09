@@ -73,6 +73,10 @@ func (srv *AuthServer) AppSecret() string {
 	return srv.appSecret
 }
 
+func (srv *AuthServer) CacheProvider() Cache {
+	return srv.cacheProvider
+}
+
 
 type tokenBucket struct {
 	currentToken string

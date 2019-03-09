@@ -3,6 +3,7 @@ package core
 import (
 	"net/url"
 	"fmt"
+	"time"
 )
 
 
@@ -50,6 +51,11 @@ func NewComponentAccessTokenServer(appId string, token string, refreshToken stri
 func (srv *DefaultAccessTokenServer) IID01332E16DF5011E5A9D5A4DB30FED8E1() {}
 
 func (srv *DefaultAccessTokenServer) Token() (token string, err error) {
+	cache := srv.client.AuthServer.CacheProvider()
+	if cache != nil {
+		token := cache.Get(srv.appId + "_access_token").(string)
+		srv.token = token
+	}
 	if srv.token != "" {
 		return srv.token, nil
 	}
@@ -80,8 +86,11 @@ func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token st
 		fmt.Println(err)
 		return
 	}
-
+	cache := srv.client.AuthServer.CacheProvider()
 	token = result.AccessToken
+	if cache != nil {
+		cache.Put(srv.appId + "_access_token", token, time.Duration(result.ExpiresIn * 1000 * 1000 * 1000))
+	}
 	srv.token = token
 	return
 }
