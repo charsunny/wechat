@@ -53,6 +53,12 @@ type CardBaseInfo struct {
 	PromotionURLName     string  `json:"promotion_url_name,omitempty"`      // 营销场景的自定义入口名称。
 	PromotionURLSubTitle string  `json:"promotion_url_sub_title,omitempty"` // 显示在营销入口右侧的提示语。
 	PromotionURL         string  `json:"promotion_url,omitempty"`           // 入口跳转外链的地址链接。
+	CustomAppBrandUserName string `json:"custom_app_brand_user_name,omitempty"` // 自定义使用入口跳转小程序的user_name，格式为原始id+@app
+	CustomAppBrandPass string `json"custom_app_brand_pass,omitempty"`		// 自定义使用入口小程序页面地址
+	CenterAppBrandUserName string `json"center_app_brand_user_name,omitempty"` // 自定义居中使用入口小程序页面地址
+	CenterAppBrandPass string `json"center_app_brand_pass,omitempty"`		// 小程序的user_name
+	PromotionAppBrandUserName string `json"promotion_app_brand_user_name,omitempty"`	// 自定义营销入口小程序页面地址
+	PromotionAppBrandPass string `json"promotion_app_brand_pass,omitempty"`	// 自定义营销入口小程序页面地址
 	GetLimit             *int    `json:"get_limit,omitempty"`               // 每人可领券的数量限制,不填写默认为50。
 	UseLimit             *int    `json:"use_limit,omitempty"`               // 每人使用次数限制.
 	CanShare             *bool   `json:"can_share,omitempty"`               // 卡券领取页面是否可分享。
