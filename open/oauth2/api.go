@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"github.com/charsunny/wechat/open/core"
+	"fmt"
 )
 
 // 获取预授权码 配合 授权链接获取的authcode 一起服用， 换取token
@@ -97,5 +98,28 @@ func GetAuthAppInfo(clt *core.Client, appId string) (authorizer map[string]inter
 	}
 	authorization = result.AuthorizationInfo
 	authorizer = result.AuthorizerInfo
+	return
+}
+
+// 小程序 获取openid 和sessionkey
+func WxaCode2Session(clt *core.Client, appId, js_code string) (openid, session_key string, err error) {
+	incompleteURL := fmt.Sprintf("https://api.weixin.qq.com/sns/component/jscode2session?appid=%s&js_code=%s&grant_type=authorization_code&component_appid=%s&component_access_token=", appId, js_code, clt.AuthServer.AppId())
+
+	var result struct{
+		core.Error
+		OpenId string `json:"openid"`
+		SessionKey string `json:"session_key"`
+	}
+
+
+	if err = clt.GetJSON(incompleteURL, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	openid = result.OpenId
+	session_key = result.SessionKey
 	return
 }

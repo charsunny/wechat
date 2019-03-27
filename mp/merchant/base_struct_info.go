@@ -4,7 +4,7 @@ package merchant
 
 //  商品
 type Product struct {
-	ProductId string `json:"core.Error"`
+	ProductId string `json:"product_id"`
 	ProductBase *ProductBase `json:"product_base"`
 	SkuList []*SkuItem	`json:"sku_list"`
 	AttrExt *AttrExt 	`json:"attrext"`
