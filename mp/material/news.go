@@ -14,6 +14,8 @@ type Article struct {
 	Content          string `json:"content"`                      // 图文消息的具体内容, 支持HTML标签, 必须少于2万字符, 小于1M, 且此处会去除JS
 	ContentSourceURL string `json:"content_source_url,omitempty"` // 图文消息的原文地址, 即点击"阅读原文"后的URL
 	ShowCoverPic     int    `json:"show_cover_pic"`               // 是否显示封面, 0为false, 即不显示, 1为true, 即显示
+	NeedOpenComment int `json:"need_open_comment"`					// 是否可以评论
+	OnlyFansCanComment int `json:"only_fans_can_comment"`			// 是否关注公众号方可评论
 	URL              string `json:"url,omitempty"`                // !!!创建时不需要此参数!!! 图文页的URL, 文章创建成功以后, 会由微信自动生成
 }
 

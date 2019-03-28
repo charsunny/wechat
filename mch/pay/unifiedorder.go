@@ -16,7 +16,10 @@ func UnifiedOrder(clt *core.Client, req map[string]string) (resp map[string]stri
 
 type UnifiedOrderRequest struct {
 	XMLName struct{} `xml:"xml" json:"-"`
-
+	AppId string `xml:"appid"`					// 服务商的公众号id
+	MchId string `xml:"mch_id"`					// 服务商的商户号
+	SubAppId string `xml:"sub_appid"`			// 小程序的appid
+	SubMchId string `xml:"sub_mch_id"`			// 小程序的商户号
 	// 必选参数
 	Body           string `xml:"body"`             // 商品或支付单简要描述
 	OutTradeNo     string `xml:"out_trade_no"`     // 商户系统内部的订单号,32个字符内、可包含字母, 其他说明见商户订单号
@@ -51,6 +54,8 @@ type UnifiedOrderResponse struct {
 
 	AppId string `xml:"appid"`
 	MchId string `xml:"mch_id"`
+	SubAppId string `xml:"sub_appid"`			// 小程序的appid
+	SubMchId string `xml:"sub_mch_id"`			// 小程序的商户号
 	NonceStr string `xml:"nonce_str"`
 	Sign string `xml:"sign"`
 
@@ -69,8 +74,17 @@ func UnifiedOrder2(clt *core.Client, req *UnifiedOrderRequest) (resp *UnifiedOrd
 	m1["spbill_create_ip"] = req.SpbillCreateIP
 	m1["notify_url"] = req.NotifyURL
 	m1["trade_type"] = req.TradeType
-	if req.DeviceInfo != "" {
-		m1["device_info"] = req.DeviceInfo
+	if req.AppId != "" {
+		m1["appid"] = req.AppId
+	}
+	if req.MchId != "" {
+		m1["mch_id"] = req.MchId
+	}
+	if req.SubAppId != "" {
+		m1["sub_appid"] = req.SubAppId
+	}
+	if req.SubMchId != "" {
+		m1["sub_mch_id"] = req.SubMchId
 	}
 	if req.NonceStr != "" {
 		m1["nonce_str"] = req.NonceStr
@@ -134,6 +148,8 @@ func UnifiedOrder2(clt *core.Client, req *UnifiedOrderRequest) (resp *UnifiedOrd
 		MWebURL:    m2["mweb_url"],
 		AppId: m2["appid"],
 		MchId: m2["mch_id"],
+		SubMchId:m2["sub_mch_id"],
+		SubAppId:m2["sub_app_id"],
 		NonceStr: m2["nonce_str"],
 		Sign: m2["sign"],
 	}
