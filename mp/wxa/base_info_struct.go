@@ -25,6 +25,46 @@ type WxaInfo struct {
 	} `json:"head_image_info"`
 }
 
+type WxaActionCateInfo struct {
+	First int `json:"first"`
+	Second int `json:"second"`
+	Certicates [] struct {
+		Key string `json:"key"`
+		Value string `json:"value"`
+	} `json:"certicates"`
+}
+
+type WxaCategory struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Father int `json:"father"`
+	Level int `json:"level"`
+	Children []int `json:"children"`
+	SensitiveType int `json:"sensitive_type"`
+	Qualify struct {
+		ExterList [] struct{
+			InnerList [] struct{
+				Name string `json:"name"`
+				Url string `json:"url"`
+			} `json:"inner_list"`
+		} `json:"exter_list"`
+	} `json:"qualify"`
+}
+
+type CategoryItem struct {
+	Quota int `json:"quota"`
+	Limit int `json:"limit"`
+	CategoryLimit int `json:"category_limit"`
+	Categories [] struct{
+		First int `json:"first"`
+		FirstName string `json:"firstName"`
+		Second int `json:"second"`
+		SecondName string `json:"secondName"`
+		AuditStatus int `json:"audit_status"`
+		AuditReason string `json:"audit_reason"`
+	} `json:"categories"`
+}
+
 type WxaNameRequestInfo struct {
 	NickName string `json:"nick_name"`	// 昵称
 	IdCard string `json:"id_card"`	// 身份证照片–临时素材mediaid	个人号必填

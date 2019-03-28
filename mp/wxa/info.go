@@ -146,4 +146,107 @@ func ModifySignature(clt *core.Client,  signature string) (err error) {
 	return
 }
 
-// TODO: 类目相关接口 && 换绑小程序管理员接口
+// TODO:  换绑小程序管理员接口
+
+// 获取所有可设置类目接口
+func GetAllCategories(clt *core.Client) (list []*WxaCategory, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/getallcategories?access_token="
+
+	var result struct {
+		core.Error
+		List struct{
+			List []*WxaCategory `json:"categories"`
+		} `json:"category_list"`
+	}
+	if err = clt.GetJSON(incompleteURL, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	list = result.List.List
+	return
+}
+
+// 添加类目
+func AddCategory(clt *core.Client,  list [] *WxaActionCateInfo) (err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+
+	var request = struct {
+		 List [] *WxaActionCateInfo `json:"categories"`
+	}{
+		List:list,
+	}
+	var result struct {
+		core.Error
+	}
+	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
+
+// 删除类目
+func DeleteCategory(clt *core.Client,  first, second int) (err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/deletecategory?access_token="
+
+	var request = struct {
+		First int `json:"first"`
+		Second int `json:"second"`
+	}{
+		First:first,
+		Second:second,
+	}
+	var result struct {
+		core.Error
+	}
+	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
+
+// 获取商户的设置类目
+func GetAccountCategory(clt *core.Client) (item *CategoryItem, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/getcategory?access_token="
+
+	var result struct {
+		core.Error
+		*CategoryItem
+	}
+	if err = clt.GetJSON(incompleteURL, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	item = result.CategoryItem
+	return
+}
+
+// 添加类目
+func ModifyCategory(clt *core.Client,  item *WxaActionCateInfo) (err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+
+	var result struct {
+		core.Error
+	}
+	if err = clt.PostJSON(incompleteURL, item, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}

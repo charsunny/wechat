@@ -67,7 +67,7 @@ func GetCategory(clt *core.Client) (list []*WxaCategoryInfo, err error)  {
 
 // 获取小程序的第三方提交代码的页面配置
 func GetPage(clt *core.Client) (list []string, err error)  {
-	const incompleteURL = "https://api.weixin.qq.com/wxa/get_category?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/wxa/get_page?access_token="
 
 	var result struct {
 		core.Error

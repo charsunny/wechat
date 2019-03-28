@@ -1,7 +1,7 @@
 package wxa
 
 import (
-	"github.com/charsunny/wechat/mp/core"
+	"github.com/charsunny/wechat/open/core"
 )
 
 type WxaCodeDraftInfo struct {
@@ -19,7 +19,7 @@ type WxaCodeTemplateInfo struct {
 }
 
 // 绑定微信用户为小程序体验者
-func GetCodeTemplateDraftList(clt *core.Client, template_id int, extjson string, version, desc string) (list []*WxaCodeDraftInfo, err error) {
+func GetCodeTemplateDraftList(clt *core.Client) (list []*WxaCodeDraftInfo, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/wxa/gettemplatedraftlist?access_token="
 
 	var result struct {
@@ -38,7 +38,7 @@ func GetCodeTemplateDraftList(clt *core.Client, template_id int, extjson string,
 }
 
 // 获取代码模版库中的所有小程序代码模版
-func GetCodeTemplateList(clt *core.Client, template_id int, extjson string, version, desc string) (list []*WxaCodeTemplateInfo, err error) {
+func GetCodeTemplateList(clt *core.Client) (list []*WxaCodeTemplateInfo, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/wxa/gettemplatelist?access_token="
 
 	var result struct {
