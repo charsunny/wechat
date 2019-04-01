@@ -94,11 +94,16 @@ func httpGetJSON(clt *http.Client, url string, response interface{}) error {
 		return err
 	}
 	defer httpResp.Body.Close()
-
+	s, _ := ioutil.ReadAll(httpResp.Body) //把  body 内容读入字符串 s
 	if httpResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
-	return api.DecodeJSONHttpResponse(httpResp.Body, response)
+	fmt.Printf("resp body: %s \n", s)
+	err = json.Unmarshal(s, response)
+	if err != nil {
+		fmt.Printf("json decode err: %v\n", err)
+	}
+	return err
 }
 
 // PostJSON 用 encoding/json 把 request marshal 为 JSON, HTTP POST 到微信服务器,

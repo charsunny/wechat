@@ -57,9 +57,9 @@ type CategoryItem struct {
 	CategoryLimit int `json:"category_limit"`
 	Categories [] struct{
 		First int `json:"first"`
-		FirstName string `json:"firstName"`
+		FirstName string `json:"first_name"`
 		Second int `json:"second"`
-		SecondName string `json:"secondName"`
+		SecondName string `json:"second_name"`
 		AuditStatus int `json:"audit_status"`
 		AuditReason string `json:"audit_reason"`
 	} `json:"categories"`
