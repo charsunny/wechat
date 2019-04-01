@@ -7,9 +7,9 @@ type WxaInfo struct {
 	PrincipalName string `json:"principal_name"`	// 主体名称
 	RealNameStatus int `json:"realname_status"`	// 实名验证状态（1：实名验证成功，2：实名验证中，3：实名验证失败）调用接口1.1创建帐号时，realname_status会初始化为2对于注册方式为微信认证的帐号，资质认证成功时，realname_status会更新为1 注意！！！当realname_status不为1时，帐号只允许调用本文档内的以下API：（即无权限调用其他API） 微信认证相关接口（参考2.x） 帐号设置相关接口（
 	WxVerifyInfo struct {
-		QualificationVerify int `json:"qualification_verify"`	//是否资质认证（true：是，false：否）若是，拥有微信认证相关的权限
-		NamingVerify int `json:"naming_verify"` // 是否名称认证（true：是，false：否）对于公众号（订阅号、服务号），是名称认证，微信客户端才会有微信认证打勾的标识
-		AnnualReview int `json:"annual_review"`	// 是否需要年审（true：是，false：否）（qualification_verify = true时才有该字段）
+		QualificationVerify bool `json:"qualification_verify"`	//是否资质认证（true：是，false：否）若是，拥有微信认证相关的权限
+		NamingVerify bool `json:"naming_verify"` // 是否名称认证（true：是，false：否）对于公众号（订阅号、服务号），是名称认证，微信客户端才会有微信认证打勾的标识
+		AnnualReview bool `json:"annual_review"`	// 是否需要年审（true：是，false：否）（qualification_verify = true时才有该字段）
 		AnnualReviewBeginTime int `json:"annual_review_begin_time"`	// 年审开始时间，时间戳（qualification_verify = true时才有该字段）
 		AnnualReviewEndTime int `json:"annual_review_end_time"` // 年审截止时间，时间戳（qualification_verify = true时才有该字段）
 	} `json:"wx_verify_info"`
