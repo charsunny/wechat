@@ -156,7 +156,7 @@ func GetAllCategories(clt *core.Client) (list []*WxaCategory, err error) {
 		core.Error
 		List struct{
 			List []*WxaCategory `json:"categories"`
-		} `json:"category_list"`
+		} `json:"categories_list"`
 	}
 	if err = clt.GetJSON(incompleteURL, &result); err != nil {
 		return
