@@ -24,7 +24,7 @@ func GetCodeTemplateDraftList(clt *core.Client) (list []*WxaCodeDraftInfo, err e
 
 	var result struct {
 		core.Error
-		TemplateList []*WxaCodeDraftInfo `json:"template_list"`
+		TemplateList []*WxaCodeDraftInfo `json:"draft_list"`
 	}
 	if err = clt.GetJSON(incompleteURL, &result); err != nil {
 		return
