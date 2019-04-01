@@ -5,14 +5,14 @@ import (
 )
 
 type WxaCodeDraftInfo struct {
-	DraftId string `json:"draft_id"`	// 展示的公众号appid
+	DraftId int `json:"draft_id"`	// 展示的公众号appid
 	UserDesc string `json:"user_desc"`	// 展示的公众号nickname
 	UserVersion string `json:"user_version"`	// 展示的公众号头像
 	CreateTime int `json:"create_time"`	// 是否可以设置 1 可以，0，不可以
 }
 
 type WxaCodeTemplateInfo struct {
-	TemplateId string `json:"template_id"`	// 展示的公众号appid
+	TemplateId int `json:"template_id"`	// 展示的公众号appid
 	UserDesc string `json:"user_desc"`	// 展示的公众号nickname
 	UserVersion string `json:"user_version"`	// 展示的公众号头像
 	CreateTime int `json:"create_time"`	// 是否可以设置 1 可以，0，不可以
