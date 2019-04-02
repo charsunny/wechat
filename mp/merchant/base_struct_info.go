@@ -12,7 +12,7 @@ type Product struct {
 }
 
 type ProductBase struct {
-	CategoryId []string                     `json:"category_id"`
+	CategoryId []int                     `json:"category_id"`
 	Property   []* struct {
 		Id  string `json:"id"`
 		Vid string `json:"vid"`
