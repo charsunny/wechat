@@ -93,9 +93,9 @@ type WxaCategoryInfo struct {
 	FirstClass string `json:"first_class"`
 	SecondClass string `json:"second_class"`
 	ThirdClass string `json:"third_class"`
-	FirstId string `json:"first_id"`
-	SecondId string `json:"second_id"`
-	ThirdId string `json:"third_id"`
+	FirstId int `json:"first_id"`
+	SecondId int `json:"second_id"`
+	ThirdId int `json:"third_id"`
 }
 
 type WxaPageInfo struct {

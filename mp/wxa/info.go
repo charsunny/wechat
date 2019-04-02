@@ -109,7 +109,7 @@ func ModifyHeadImage(clt *core.Client,  head_img_media_id string) (err error) {
 		X1: 0,
 		X2: 1,
 		Y1: 0,
-		Y2: 0,
+		Y2: 1,
 	}
 	var result struct {
 		core.Error
