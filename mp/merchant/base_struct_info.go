@@ -22,6 +22,7 @@ type ProductBase struct {
 	MainImg    string                       `json:"main_img"`
 	Img        []string                     `json:"img"`
 	Detail     []*ProductDetail `json:"detail"`
+	DetailHtml string `json:"detail_html"`
 	BuyLimit   int                          `json:"buy_limit"`
 }
 
