@@ -101,7 +101,7 @@ type AttrExt struct {
 
 type DeliveryInfo struct {
 	DeliveryType int                            `json:"delivery_type"`	// 运费类型(0-使用下面express字段的默认模板, 1-使用template_id代表的邮费模板, 详见邮费模板相关API)
-	TemplateId   string                            `json:"template_id"`
+	TemplateId   int                            `json:"template_id"`
 	Express      []*DeliveryInfoExpress `json:"express"`
 }
 
