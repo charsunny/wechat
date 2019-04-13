@@ -253,7 +253,7 @@ func ModifyCategory(clt *core.Client,  item *WxaActionCateInfo) (err error) {
 
 // 修改域名
 func ModifyDomain(clt *core.Client,  action string, requestdomain , wsrequestdomain, uploaddoamin, downloaddomain []string) ( requst, ws, upload, download []string, err error) {
-	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/modify_domain?access_token="
 
 	var req = struct{
 		Action string `json:"action"`
@@ -291,7 +291,7 @@ func ModifyDomain(clt *core.Client,  action string, requestdomain , wsrequestdom
 
 // 设置webviewdomain
 func SetWebviewDomain(clt *core.Client, action string, domains []string) (list []string, err error) {
-	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/setwebviewdomain?access_token="
 
 	var req = struct{
 		Action string `json:"action"`
