@@ -250,3 +250,67 @@ func ModifyCategory(clt *core.Client,  item *WxaActionCateInfo) (err error) {
 	}
 	return
 }
+
+// 修改域名
+func ModifyDomain(clt *core.Client,  action string, requestdomain , wsrequestdomain, uploaddoamin, downloaddomain []string) ( requst, ws, upload, download []string, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+
+	var req = struct{
+		Action string `json:"action"`
+		RequestDomain []string `json:"requestdomain"`
+		WsrequestDomain []string `json:"wsrequestdomain"`
+		UploadDomain []string `json:"uploaddomain"`
+		DownloadDomain []string `json:"downloaddomain"`
+	} {
+		Action:action,
+		RequestDomain:requestdomain,
+		WsrequestDomain:wsrequestdomain,
+		UploadDomain:uploaddoamin,
+		DownloadDomain:downloaddomain,
+	}
+	var result struct {
+		core.Error
+		RequestDomain []string `json:"requestdomain"`
+		WsrequestDomain []string `json:"wsrequestdomain"`
+		UploadDomain []string `json:"uploaddomain"`
+		DownloadDomain []string `json:"downloaddomain"`
+	}
+	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	requst = result.RequestDomain
+	ws = result.WsrequestDomain
+	upload = result.UploadDomain
+	download = result.DownloadDomain
+	return
+}
+
+// 设置webviewdomain
+func SetWebviewDomain(clt *core.Client, action string, domains []string) (list []string, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+
+	var req = struct{
+		Action string `json:"action"`
+		Domains []string `json:"webviewdomain"`
+	} {
+		Action:action,
+		Domains: domains,
+	}
+	var result struct {
+		core.Error
+		Domains []string `json:"webviewdomain"`
+	}
+	if err = clt.PostJSON(incompleteURL, req, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	list = result.Domains
+	return
+}
