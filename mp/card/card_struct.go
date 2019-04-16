@@ -78,7 +78,7 @@ type MemberCard struct {
 	BonusAppBrandPass string `json:"bonus_app_brand_pass,omitempty"` // 自定义信息类目小程序的页面路径
 	BalanceURL        string                 `json:"balance_url,omitempty"`       // 设置跳转外链查看余额详情。仅适用于余额无法通过激活接口同步的情况下使用该字段。
 	BonusClearedRules string                 `json:"bonus_cleared,omitempty"`     // 积分清零规则。
-	BonusRule         string                 `json:"bonus_rule,omitempty"`       // 积分规则的json结构。
+	BonusRule         *MemberCardBonusRule                 `json:"bonus_rule,omitempty"`       // 积分规则的json结构。
 	BonusRules        string                 `json:"bonus_rules,omitempty"`       // 积分规则。
 	BonusCleared        string                 `json:"bonus_cleared,omitempty"`       // 积分规则。
 	BalanceRules      string                 `json:"balance_rules,omitempty"`     // 储值说明。
@@ -92,6 +92,18 @@ type MemberCard struct {
 	CustomField2      *MemberCardCustomField `json:"custom_field2,omitempty"`     // 自定义会员信息类目，会员卡激活后显示。
 	CustomField3      *MemberCardCustomField `json:"custom_field3,omitempty"`     // 自定义会员信息类目，会员卡激活后显示。
 	CustomCell1       *MemberCardCustomCell  `json:"custom_cell1,omitempty"`      // 自定义会员信息类目，会员卡激活后显示。
+	Discount *int          `json:"discount,omitempty"` // 会员卡买单的折扣信息，表示打折额度(百分比). 填30 就是七折.
+}
+
+type MemberCardBonusRule struct {
+	CostMoneyUnit int `json:"cost_money_unit"`	// 积分消费单元 例如 每消费100元
+	IncreaseBonus int `json:"increase_bonus"`	// 赠送积分数目
+	MaxIncreaseBonus int `json:"max_increase_bonus"`	// 最多赠送积分
+	InitIncreaseBonus int `json:"init_increase_bonus"`	// 开卡赠送积分
+	CostBonusUnit int `json:"cost_bonus_unit"`	// 积分抵扣单元 例如 每100积分
+	ReduceMoney int `json:"reduce_money"`	// 积分抵扣金额 例如 抵扣20元
+	LeastMoneyToUserBonus int `json:"least_money_to_use_bonus"` // 抵扣条件 使用积分最低消费金额
+	MaxReduceBonus int `json:"max_reduce_bonus"`	// 单次消费最多使用积分
 }
 
 type MemberCardCustomField struct {
