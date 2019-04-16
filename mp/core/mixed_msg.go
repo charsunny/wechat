@@ -68,7 +68,7 @@ type MixedMsg struct {
 	*Card           // card
 	*BizWifi        // bizwifi
 	*File           // MsgType is file
-
+	*Wxa
 	// shakearound
 	ChosenBeacon *struct {
 		UUID     string  `xml:"Uuid"     json:"Uuid"`
@@ -97,6 +97,14 @@ type Account struct {
 	ExpiredTime int64  `xml:"ExpiredTime" json:"ExpiredTime"`
 	FailTime    int64  `xml:"FailTime"    json:"FailTime"`
 	FailReason  string `xml:"FailReason"  json:"FailReason"`
+}
+
+type Wxa struct {
+	ScreenShot string  `xml:"ScreenShot" json:"ScreenShot"`
+	Reason  string `xml:"FailReason"  json:"FailReason"`
+	SuccTime  string `xml:"SuccTime"  json:"SuccTime"`
+	Ret int  `xml:"ret"  json:"ret"`
+	Nickname string  `xml:"nickname"  json:"nickname"`
 }
 
 type Dkf struct {
