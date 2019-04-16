@@ -69,6 +69,7 @@ type Gift struct {
 // 会员卡
 type MemberCard struct {
 	BaseInfo *CardBaseInfo `json:"base_info,omitempty"`
+	BackgroundPicURL string `json:"background_pic_url,omitempty"`
 	AdvancedInfo *AdvancedInfo `json:"advanced_info,omitempty"`
 	Prerogative       string                 `json:"prerogative,omitempty"`       // 会员卡特权说明
 	SupplyBonus       *bool                  `json:"supply_bonus,omitempty"`      // 显示积分，填写true或false，如填写true，积分相关字段均为必填
