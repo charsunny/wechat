@@ -36,14 +36,18 @@ func WXConfigSign(jsapiTicket, nonceStr, timestamp, url string) (signature strin
 // JS-SDK 卡券 API 参数签名.
 func CardSign(strs []string) (signature string) {
 	sort.Strings(strs)
-
+	str := strings.Join(strs, "")
 	h := sha1.New()
 
 	bufw := bufio.NewWriterSize(h, 128) // sha1.BlockSize 的整数倍
-	for _, str := range strs {
-		bufw.WriteString(str)
-	}
+
+	bufw.WriteString(str)
+
 	bufw.Flush()
 
-	return hex.EncodeToString(h.Sum(nil))
+	signature = hex.EncodeToString(h.Sum(nil))
+
+	beego.Debug(str, signature)
+
+	return
 }
