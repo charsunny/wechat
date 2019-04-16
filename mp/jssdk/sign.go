@@ -47,8 +47,5 @@ func CardSign(strs []string) (signature string) {
 
 	signature = hex.EncodeToString(h.Sum(nil))
 
-	println(str)
-	println(signature)
-	
 	return
 }
