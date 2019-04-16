@@ -47,7 +47,8 @@ func CardSign(strs []string) (signature string) {
 
 	signature = hex.EncodeToString(h.Sum(nil))
 
-	beego.Debug(str, signature)
-
+	println(str)
+	println(signature)
+	
 	return
 }
