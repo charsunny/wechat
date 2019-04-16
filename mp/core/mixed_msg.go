@@ -101,7 +101,7 @@ type Account struct {
 
 type Wxa struct {
 	ScreenShot string  `xml:"ScreenShot" json:"ScreenShot"`
-	Reason  string `xml:"FailReason"  json:"FailReason"`
+	Reason  string `xml:"Reason"  json:"Reason"`
 	SuccTime  string `xml:"SuccTime"  json:"SuccTime"`
 	Ret int  `xml:"ret"  json:"ret"`
 	Nickname string  `xml:"nickname"  json:"nickname"`
