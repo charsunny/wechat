@@ -32,7 +32,7 @@ type UnifiedOrderRequest struct {
 	DeviceInfo string    `xml:"device_info"` // 终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传"WEB"
 	NonceStr   string    `xml:"nonce_str"`   // 随机字符串，不长于32位。NOTE: 如果为空则系统会自动生成一个随机字符串。
 	SignType   string    `xml:"sign_type"`   // 签名类型，默认为MD5，支持HMAC-SHA256和MD5。
-	Detail     string    `xml:"detail"`      // 商品名称明细列表
+	Detail     string    `xml:"detail"`      // 商品名称明细列
 	Attach     string    `xml:"attach"`      // 附加数据，在查询API和支付通知中原样返回，该字段主要用于商户携带订单的自定义数据
 	FeeType    string    `xml:"fee_type"`    // 符合ISO 4217标准的三位字母代码，默认人民币：CNY，其他值列表详见货币类型
 	TimeStart  time.Time `xml:"time_start"`  // 订单生成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010。其他详见时间规则

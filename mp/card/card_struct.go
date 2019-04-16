@@ -74,10 +74,18 @@ type MemberCard struct {
 	SupplyBonus       *bool                  `json:"supply_bonus,omitempty"`      // 显示积分，填写true或false，如填写true，积分相关字段均为必填
 	BonusURL          string                 `json:"bonus_url,omitempty"`         // 设置跳转外链查看积分详情。仅适用于积分无法通过激活接口同步的情况下使用该字段。
 	SupplyBalance     *bool                  `json:"supply_balance,omitempty"`    // 是否支持储值，填写true或false。如填写true，储值相关字段均为必填。
+	BonusAppBrandUserName string `json:"bonus_app_brand_user_name,omitempty"` // 自定义信息类目小程序user_name，格式为原始id+@app
+	BonusAppBrandPass string `json:"bonus_app_brand_pass,omitempty"` // 自定义信息类目小程序的页面路径
 	BalanceURL        string                 `json:"balance_url,omitempty"`       // 设置跳转外链查看余额详情。仅适用于余额无法通过激活接口同步的情况下使用该字段。
 	BonusClearedRules string                 `json:"bonus_cleared,omitempty"`     // 积分清零规则。
+	BonusRule         string                 `json:"bonus_rule,omitempty"`       // 积分规则的json结构。
 	BonusRules        string                 `json:"bonus_rules,omitempty"`       // 积分规则。
+	BonusCleared        string                 `json:"bonus_cleared,omitempty"`       // 积分规则。
 	BalanceRules      string                 `json:"balance_rules,omitempty"`     // 储值说明。
+	BalanceAppBrandUserName string `json:"balance_app_brand_user_name,omitempty"` // 自定义信息类目小程序user_name，格式为原始id+@app
+	BalanceAppBrandPass string `json:"balance_app_brand_pass,omitempty"` // 自定义信息类目小程序的页面路径
+	WxActivate 		  *bool 				 `json:"wx_activate,omitempty"`
+	AutoActivate      *bool					 `json:"auto_activate,omitempty"`
 	ActivateURL       string                 `json:"activate_url,omitempty"`      // 激活会员卡的url。
 	NeedPushOnView    *bool                  `json:"need_push_on_view,omitempty"` // 填写true为用户点击进入会员卡时推送事件，默认为false。
 	CustomField1      *MemberCardCustomField `json:"custom_field1,omitempty"`     // 自定义会员信息类目，会员卡激活后显示。
@@ -97,12 +105,16 @@ type MemberCardCustomField struct {
 	// FIELD_NAME_TYPE_MILEAGE      里程
 	NameType string `json:"name_type,omitempty"`
 	URL      string `json:"url,omitempty"` // 点击类目跳转外链url
+	AppBrandUserName string `json:"app_brand_user_name,omitempty"` // 自定义信息类目小程序user_name，格式为原始id+@app
+	AppBrandPass string `json:"app_brand_pass,omitempty"` // 自定义信息类目小程序的页面路径
 }
 
 type MemberCardCustomCell struct {
 	Name string `json:"name,omitempty"` // 入口名称。
 	Tips string `json:"tips,omitempty"` // 入口右侧提示语，6个汉字内。
 	URL  string `json:"url,omitempty"`  // 入口跳转链接。
+	AppBrandUserName string `json:"app_brand_user_name,omitempty"` // 自定义信息类目小程序user_name，格式为原始id+@app
+	AppBrandPass string `json:"app_brand_pass,omitempty"` // 自定义信息类目小程序的页面路径
 }
 
 // 会议门票
