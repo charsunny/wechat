@@ -6,6 +6,14 @@ import (
 	"encoding/json"
 	"crypto/aes"
 	"crypto/cipher"
+	"errors"
+)
+
+var (
+	ErrAppIDNotMatch       = errors.New("app id not match")
+	ErrInvalidBlockSize    = errors.New("invalid block size")
+	ErrInvalidPKCS7Data    = errors.New("invalid PKCS7 data")
+	ErrInvalidPKCS7Padding = errors.New("invalid padding on input")
 )
 
 func DecryptWXOpenData(appId string, sessionKey, encryptData, iv string) (map[string]interface{}, error) {
@@ -41,6 +49,27 @@ func DecryptWXOpenData(appId string, sessionKey, encryptData, iv string) (map[st
 
 }
 
+// pkcs7Unpad returns slice of the original data without padding
+func pkcs7Unpad(data []byte, blockSize int) ([]byte, error) {
+	if blockSize <= 0 {
+		return nil, ErrInvalidBlockSize
+	}
+	if len(data)%blockSize != 0 || len(data) == 0 {
+		return nil, ErrInvalidPKCS7Data
+	}
+	c := data[len(data)-1]
+	n := int(c)
+	if n == 0 || n > len(data) {
+		return nil, ErrInvalidPKCS7Padding
+	}
+	for i := 0; i < n; i++ {
+		if data[len(data)-n+i] != c {
+			return nil, ErrInvalidPKCS7Padding
+		}
+	}
+	return data[:len(data)-n], nil
+}
+
 func AesDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -50,11 +79,10 @@ func AesDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	blockMode := cipher.NewCBCDecrypter(block, iv)
 	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
+	origData, err = pkcs7Unpad(origData, block.BlockSize())
 	//获取的数据尾端有'/x0e'占位符,去除它
-	for i, ch := range origData {
-		if ch == '\x0e' || ch == '\x04' || ch == '\x03' || ch == '\x00' {
-			origData[i] = ' '
-		}
+	for err != nil {
+		return origData, err
 	}
 	//{"phoneNumber":"15082726017","purePhoneNumber":"15082726017","countryCode":"86","watermark":{"timestamp":1539657521,"appid":"wx4c6c3ed14736228c"}}//<nil>
 	return origData, nil
