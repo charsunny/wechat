@@ -102,13 +102,14 @@ func GetAuthAppInfo(clt *core.Client, appId string) (authorizer map[string]inter
 }
 
 // 小程序 获取openid 和sessionkey
-func WxaCode2Session(clt *core.Client, appId, js_code string) (openid, session_key string, err error) {
+func WxaCode2Session(clt *core.Client, appId, js_code string) (openid, unionid, session_key string, err error) {
 	incompleteURL := fmt.Sprintf("https://api.weixin.qq.com/sns/component/jscode2session?appid=%s&js_code=%s&grant_type=authorization_code&component_appid=%s&component_access_token=", appId, js_code, clt.AuthServer.AppId())
 
 	var result struct{
 		core.Error
 		OpenId string `json:"openid"`
 		SessionKey string `json:"session_key"`
+		UnionId string `json:"unionid"`
 	}
 
 
