@@ -141,6 +141,7 @@ type Card struct {
 	IsRecommendByFriend int    `xml:"IsRecommendByFriend" json:"IsRecommendByFriend"`
 	PageId              string `xml:"PageId"              json:"PageId"`
 	OrderId             string `xml:"OrderId"             json:"OrderId"`
+	UnionId             string `xml:"UnionId"             json:"UnionId"`
 }
 
 type BizWifi struct {
