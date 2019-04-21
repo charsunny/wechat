@@ -89,7 +89,7 @@ func SubmitCode(clt *core.Client, list []*WxaPageInfo, feedinfo, feedstuff strin
 	const incompleteURL = "https://api.weixin.qq.com/wxa/submit_audit?access_token="
 
 	var request = struct {
-		ItemList []*WxaPageInfo `json:"action"`	//微信号
+		ItemList []*WxaPageInfo `json:"item_list"`	//微信号
 		FeedbackInfo string `json:"feedback_info"`	// 反馈内容，不超过200字, 只有上个版本被驳回，才能使用“feedback_info”、“feedback_stuff”这两个字段，否则忽略处理
 		FeedbackStuff string `json:"feedback_stuff"` //图片media_id列表，中间用“丨”分割，xx丨yy丨zz，不超过5张图片, 其中 media_id 可以通过新增临时素材接口上传而得到
 	}{
