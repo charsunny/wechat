@@ -303,12 +303,12 @@ func httpPostJSON(clt *http.Client, url string, body []byte, response interface{
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
-	fmt.Printf("resp body: %s \n", data)
 	err = json.Unmarshal(data, response)
 	if err != nil {
 		fmt.Printf("json decode err: %v\n", err)
 		return data, err
 	}
+	fmt.Printf("resp body: %s \n", response)
 	return data, err
 }
 

@@ -98,12 +98,12 @@ func CreateWxaCodeUnlimited(clt *core.Client, scene string, path string, width i
 	var result struct {
 		core.Error
 	}
-	if data, err = clt.PostJsonData(incompleteURL, &request, &result); err != nil {
-		return
-	}
-	if result.ErrCode != core.ErrCodeOK {
+	data, err = clt.PostJsonData(incompleteURL, &request, &result)
+
+	if result != nil && result.ErrCode != core.ErrCodeOK {
 		err = &result.Error
 		return
 	}
+	err = nil
 	return
 }
