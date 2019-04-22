@@ -20,9 +20,7 @@ func CreateQRCode(clt *core.Client, path string, width int) (data []byte, err er
 	var result struct {
 		core.Error
 	}
-	if data, err = clt.PostJsonData(incompleteURL, &request, &result); err != nil {
-		return
-	}
+	data, err = clt.PostJsonData(incompleteURL, &request, &result)
 	if result.ErrCode != core.ErrCodeOK {
 		err = &result.Error
 		return
@@ -61,9 +59,7 @@ func CreateWxaCode(clt *core.Client, path string, width int, lineColor *LineColo
 	var result struct {
 		core.Error
 	}
-	if data, err = clt.PostJsonData(incompleteURL, &request, &result); err != nil {
-		return
-	}
+	data, err = clt.PostJsonData(incompleteURL, &request, &result)
 	if result.ErrCode != core.ErrCodeOK {
 		err = &result.Error
 		return
@@ -100,7 +96,7 @@ func CreateWxaCodeUnlimited(clt *core.Client, scene string, path string, width i
 	}
 	data, err = clt.PostJsonData(incompleteURL, &request, &result)
 
-	if result != nil && result.ErrCode != core.ErrCodeOK {
+	if result.ErrCode != core.ErrCodeOK {
 		err = &result.Error
 		return
 	}
