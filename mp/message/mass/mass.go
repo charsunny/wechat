@@ -14,13 +14,17 @@ type Result struct {
 }
 
 // Delete 删除群发.
-func Delete(clt *core.Client, msgid int64) (err error) {
+// msgid 发送出去的消息ID
+// article_idx 要删除的文章在图文消息中的位置，第一篇编号为1，该字段不填或填0会删除全部文章
+func Delete(clt *core.Client, msgid int64, article_idx int) (err error) {
 	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/message/mass/delete?access_token="
 
 	var request = struct {
 		MsgId int64 `json:"msg_id"`
+		ArticleIdx int `json:"article_idx"`
 	}{
 		MsgId: msgid,
+		ArticleIdx:article_idx,
 	}
 	var result core.Error
 	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
