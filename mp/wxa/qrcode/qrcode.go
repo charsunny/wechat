@@ -77,7 +77,7 @@ func CreateWxaCodeUnlimited(clt *core.Client, scene string, path string, width i
 	const incompleteURL = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token="
 
 	var request = struct {
-		Path string `json:"path"`	//路径
+		Path string `json:"page"`	//路径
 		Width int `json:"width"`	//宽度
 		Scene string `json:"scene"`
 		AutoColor bool `json:"auto_color"`
