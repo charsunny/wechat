@@ -161,7 +161,7 @@ type File struct {
 
 type FastRegisterWxa struct {
 	RegAppId            string `xml:"appid"              json:"appid"`
-	Status        		string `xml:"status"        json:"status"`
+	Status        		int `xml:"status"        json:"status"`
 	AuthCode      		string `xml:"auth_code"      json:"auth_code"`
 	Msg      			string `xml:"msg"      json:"msg"`
 	RegInfo *struct{
