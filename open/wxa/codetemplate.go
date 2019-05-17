@@ -18,6 +18,57 @@ type WxaCodeTemplateInfo struct {
 	CreateTime int `json:"create_time"`	// 是否可以设置 1 可以，0，不可以
 }
 
+type FastRegesiterInfo struct {
+	Name string `json:"name"`	// 企业名（需与工商部门登记信息一致）
+	Code string `json:"code"`	// 证件编号
+	CodeType int `json:"code_type"`	// 企业代码类型（1：统一社会信用代码， 2：组织机构代码，3：营业执照注册号）
+	LegalPersonaWechat string `json:"legal_persona_wechat"`	 // 法人微信
+	LegalPersonaName string `json:"legal_persona_name"`	 // 法人姓名
+	ComponentPhone string `json:"component_phone"`	 //第三方联系电话
+}
+
+// 快速注册小程序
+func FastRegisterWeapp(clt *core.Client, info *FastRegesiterInfo) (err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/fastregisterweapp?action=create&component_access_token="
+
+	var result struct {
+		core.Error
+	}
+	if err = clt.PostJSON(incompleteURL, info, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
+
+// 查询快速注册小程序状态
+func QueryFastRegisterWeapp(clt *core.Client, info *FastRegesiterInfo) (err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/component/fastregisterweapp?action=search&component_access_token="
+	var req = struct{
+		Name string `json:"name"`
+		LegalPersonaWechat string `json:"legal_persona_wechat"`	 // 法人微信
+		LegalPersonaName string `json:"legal_persona_name"`	 // 法人姓名
+	} {
+		 Name: info.Name,
+		 LegalPersonaName: info.LegalPersonaName,
+		 LegalPersonaWechat: info.LegalPersonaWechat,
+	}
+	var result struct {
+		core.Error
+	}
+	if err = clt.PostJSON(incompleteURL, &req, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
+
 // 绑定微信用户为小程序体验者
 func GetCodeTemplateDraftList(clt *core.Client) (list []*WxaCodeDraftInfo, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/wxa/gettemplatedraftlist?access_token="

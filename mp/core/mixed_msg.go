@@ -69,6 +69,7 @@ type MixedMsg struct {
 	*BizWifi        // bizwifi
 	*File           // MsgType is file
 	*Wxa
+	*FastRegisterWxa
 	// shakearound
 	ChosenBeacon *struct {
 		UUID     string  `xml:"Uuid"     json:"Uuid"`
@@ -117,7 +118,7 @@ type Poi struct {
 	UniqId string `xml:"UniqId" json:"UniqId"`
 	PoiId  int64  `xml:"PoiId"  json:"PoiId"`
 	Result string `xml:"Result" json:"Result"`
-	Msg    string `xml:"Msg"    json:"Msg"`
+	Msg    string `xml:"msg"    json:"msg"`
 }
 
 type Card struct {
@@ -156,4 +157,19 @@ type File struct {
 	FileKey      string `xml:"FileKey"      json:"FileKey"`
 	FileMd5      string `xml:"FileMd5"      json:"FileMd5"`
 	FileTotalLen string `xml:"FileTotalLen" json:"FileTotalLen"`
+}
+
+type FastRegisterWxa struct {
+	RegAppId            string `xml:"appid"              json:"appid"`
+	Status        		string `xml:"status"        json:"status"`
+	AuthCode      		string `xml:"auth_code"      json:"auth_code"`
+	Msg      			string `xml:"msg"      json:"msg"`
+	RegInfo *struct{
+		Name        	string `xml:"name"        json:"name"`
+		Code     		string `xml:"code"     json:"code"`
+		CodeType       	int `xml:"code_type"       json:"code_type"`
+		LegalPersonaWechat	string        `xml:"legal_persona_wechat"             json:"legal_persona_wechat"`
+		LegalPersonaName	string `xml:"legal_persona_name"        json:"legal_persona_name"`
+		ComponentPhone		string `xml:"component_phone"         json:"component_phone"`
+	} 						`xml:"info"      json:"info"`
 }
