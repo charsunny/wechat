@@ -51,8 +51,8 @@ func AddTemplate(clt *core.Client, id string, keyIds []int) (template_id string,
 		KeywordIdList:keyIds,
 	}
 	var result struct {
-		TemplateId string `json:"template_id"`
 		core.Error
+		TemplateId string `json:"template_id"`
 	}
 	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
 		return
@@ -99,9 +99,9 @@ func GetTemplateLibraryById(clt *core.Client, id string) (title string, keywords
 		Id:id,
 	}
 	var result struct {
+		core.Error
 		Title string `json:"title"`
 		KeywordList []*Keyword `json:"keyword_list"`
-		core.Error
 	}
 	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
 		return
@@ -127,9 +127,9 @@ func GetTemplateLibraryList(clt *core.Client, page, count int) (total_count int,
 		Count: count,
 	}
 	var result struct {
+		core.Error
 		TotalCount int `json:"total_count"`
 		List []*Template `json:"list"`
-		core.Error
 	}
 	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
 		return
@@ -156,8 +156,8 @@ func GetTemplateList(clt *core.Client, page, count int) (list[]*Template, err er
 		Count: count,
 	}
 	var result struct {
-		List []*Template `json:"list"`
 		core.Error
+		List []*Template `json:"list"`
 	}
 	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
 		return
