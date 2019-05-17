@@ -118,7 +118,6 @@ type Poi struct {
 	UniqId string `xml:"UniqId" json:"UniqId"`
 	PoiId  int64  `xml:"PoiId"  json:"PoiId"`
 	Result string `xml:"Result" json:"Result"`
-	Msg    string `xml:"msg"    json:"msg"`
 }
 
 type Card struct {
