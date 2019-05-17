@@ -330,10 +330,11 @@ func checkResponse(response interface{}) (ErrorStructValue, ErrorErrCodeValue re
 			panic("the type of response is incorrect")
 		}
 		v := responseStructValue.Field(0)
-		if v.Type() != errorType {
+		if v.Type() == errorType {
+			ErrorStructValue = v
+		} else {
 			panic("the type of response is incorrect")
 		}
-		ErrorStructValue = v
 	}
 	ErrorErrCodeValue = ErrorStructValue.Field(errorErrCodeIndex)
 	return
