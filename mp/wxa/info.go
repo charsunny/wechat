@@ -1,8 +1,29 @@
 package wxa
 
 import (
+	"fmt"
+	"net/url"
 	"github.com/charsunny/wechat/mp/core"
 )
+
+// 获取支付的unionid信息
+func GetPaidUnionId(clt *core.Client, openid string, transId string) (unionid string, err error) {
+	incompleteURL := fmt.Sprintf("https://api.weixin.qq.com/wxa/getpaidunionid?openid=%s&transaction_id=%s&access_token=",  url.QueryEscape(openid), transId)
+
+	var result struct {
+		core.Error
+		UnionId string `json:"unionid"`
+	}
+	if err = clt.GetJSON(incompleteURL, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	unionid = result.UnionId
+	return
+}
 
 // 获取帐号基本信息
 func GetBaseInfo(clt *core.Client) (info *WxaInfo, err error) {
