@@ -456,14 +456,13 @@ func (srv *AuthServer) updateToken(currentToken string) (token *componentAccessT
 }
 
 // ServeHTTP 处理微信服务器的回调请求, query 参数可以为 nil.
-func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query url.Values) {
+func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query url.Values) (msg []byte) {
 
 	callback.DebugPrintRequest(r)
 	if query == nil {
 		query = r.URL.Query()
 	}
 	errorHandler := srv.errorHandler
-
 	switch r.Method {
 	case "POST": // 推送消息(事件)
 		switch encryptType := query.Get("encrypt_type"); encryptType {
@@ -600,6 +599,10 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 				errorHandler.ServeError(w, r, err)
 				return
 			}
+			if verifyTicket.InfoType == "notify_third_fasteregister" {
+				msg = msgPlaintext
+				return
+			}
 			srv.setComponentVerifyTicket(verifyTicket.ComponentVerifyTicket)
 			// set cookie for later user
 			// 首先从cache中读取上一次的保存的ticker provider， 不必从微信服务端获取
@@ -609,12 +612,13 @@ func (srv *AuthServer) ServeHTTP(w http.ResponseWriter, r *http.Request, query u
 			}
 			fmt.Printf("get wechat server ticker: %v, %v, %v\n", wantAppId, verifyTicket.ComponentVerifyTicket, w.Header())
 			io.WriteString(w, "success")
-			return
+			return msgPlaintext
 		default:
 			errorHandler.ServeError(w, r, errors.New("unknown encrypt_type: "+encryptType))
 		}
 	}
 	io.WriteString(w, "success")
+	return
 }
 
 // =====================================================================================================================
