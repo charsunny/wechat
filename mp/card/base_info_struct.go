@@ -14,8 +14,8 @@ const (
 	CardStatusNotVerify    = "CARD_STATUS_NOT_VERIFY"    // 待审核
 	CardStatusVerifyFail   = "CARD_STATUS_VERIFY_FALL"   // 审核失败
 	CardStatusVerifyOk     = "CARD_STATUS_VERIFY_OK"     // 通过审核
-	CardStatusUserDelete   = "CARD_STATUS_USER_DELETE"   // 卡券被用户删除
-	CardStatusUserDispatch = "CARD_STATUS_USER_DISPATCH" // 在公众平台投放过的卡券
+	CardStatusDelete   = "CARD_STATUS_DELETE"   // 卡券被商户删除
+	CardStatusDispatch = "CARD_STATUS_DISPATCH" // 在公众平台投放过的卡券
 )
 
 const (
