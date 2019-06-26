@@ -1,6 +1,7 @@
 package wxa
 
 import (
+	"fmt"
 	"github.com/charsunny/wechat/mp/core"
 )
 
@@ -64,9 +65,9 @@ func QueryShowWxaItem(clt *core.Client) (info* WxaItemInfo, err error) {
 	return
 }
 
-// 获取展示的公众号信息
+// 更新展示的公众号信息
 func UpdateShowWxaItem(clt *core.Client, open int, appid string) (err error) {
-	const incompleteURL = "https://api.weixin.qq.com/wxa/getshowwxaitem?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/wxa/updateshowwxaitem?access_token="
 
 	var request = struct {
 		Open int `json:"wxa_subscribe_biz_flag"`	// 0 关闭，1 开启
@@ -91,22 +92,14 @@ func UpdateShowWxaItem(clt *core.Client, open int, appid string) (err error) {
 
 // 获取可以用来设置的公众号列表
 func GetShowWxaItemList(clt *core.Client, page, num int) (total int, list []*WxaItemInfo, err error) {
-	const incompleteURL = "https://api.weixin.qq.com/wxa/getshowwxaitem?access_token="
-
-	var request = struct {
-		Page int `json:"page"`	// 0 关闭，1 开启
-		Num int `json:"num"`	// 如果开启，需要传新的公众号appid
-	}{
-		Page:page,
-		Num:num,
-	}
+	incompleteURL := fmt.Sprintf("https://api.weixin.qq.com/wxa/getwxamplinkforshow?page=%d&num=%daccess_token=", page, num)
 
 	var result struct {
 		core.Error
 		TotalNum int `json:"total_num"`
 		BizInfoList []*WxaItemInfo `json:"biz_info_list"`
 	}
-	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
+	if err = clt.GetJSON(incompleteURL, &result); err != nil {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
