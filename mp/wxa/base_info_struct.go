@@ -84,7 +84,7 @@ type WxaNameResultInfo struct {
 type WxaItemInfo struct {
 	AppId string `json:"appid"`	// 展示的公众号appid
 	Nickname string `json:"nickname"`	// 展示的公众号nickname
-	headimg string `json:"headimg"`	// 展示的公众号头像
+	Headimg string `json:"headimg"`	// 展示的公众号头像
 	CanOpen int `json:"can_open"`	// 是否可以设置 1 可以，0，不可以
 	IsOpen int `json:"is_open"`	// 是否已经设置，1 已设置，0，未设置
 }
