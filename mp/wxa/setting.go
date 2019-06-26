@@ -92,7 +92,7 @@ func UpdateShowWxaItem(clt *core.Client, open int, appid string) (err error) {
 
 // 获取可以用来设置的公众号列表
 func GetShowWxaItemList(clt *core.Client, page, num int) (total int, list []*WxaItemInfo, err error) {
-	incompleteURL := fmt.Sprintf("https://api.weixin.qq.com/wxa/getwxamplinkforshow?page=%d&num=%daccess_token=", page, num)
+	incompleteURL := fmt.Sprintf("https://api.weixin.qq.com/wxa/getwxamplinkforshow?page=%d&num=%d&access_token=", page, num)
 
 	var result struct {
 		core.Error
