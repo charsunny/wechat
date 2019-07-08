@@ -257,7 +257,7 @@ func GetAccountCategory(clt *core.Client) (item *CategoryItem, err error) {
 
 // 添加类目
 func ModifyCategory(clt *core.Client,  item *WxaActionCateInfo) (err error) {
-	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/addcategory?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/modifycategory?access_token="
 
 	var result struct {
 		core.Error

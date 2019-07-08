@@ -13,7 +13,7 @@ type WxaInfo struct {
 	Released int `json:"released"`	// 是否展示在附近的小程序中
 	HeadimgUrl int `json:"headimg_url"`	// 是否展示在附近的小程序中
 	FuncInfo []*FuncInfo `json:"func_info"`	// 是否展示在附近的小程序中
-	email string `json:"email"`	// 是否展示在附近的小程序中
+	Email string `json:"email"`	// 是否展示在附近的小程序中
 }
 
 type FuncInfo struct {

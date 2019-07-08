@@ -17,6 +17,7 @@ type CreateParameters struct {
 	ExpireSeconds int    `json:"expire_seconds,omitempty"` // 可选; 指定二维码的有效时间，范围是60 ~ 1800秒。不填(值为0)默认为永久有效。
 	IsUniqueCode  *bool  `json:"is_unique_code,omitempty"` // 可选; 指定下发二维码，生成的二维码随机分配一个code，领取后不可再次扫描。填写true或false。默认false。
 	OuterId       *int64 `json:"outer_id,omitempty"`       // 可选; 领取场景值，用于领取渠道的数据统计，默认值为0，字段类型为整型，长度限制为60位数字。用户领取卡券后触发的事件推送中会带上此自定义场景值。
+	OuterStr 	  string `json:"outer_str,omitempty"`
 }
 
 type QrcodeInfo struct {
