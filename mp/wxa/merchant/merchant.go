@@ -9,7 +9,7 @@ func GetDistrict(clt *core.Client) (list [][]map[string]interface{}, version str
 	const incompleteURL = "https://api.weixin.qq.com/wxa/get_district?access_token="
 
 	var result struct {
-		error core.Error
+		core.Error
 		Status int `json:"status"`
 		Version string `json:"data_version"`
 		Result [][]map[string]interface{} `json:"result"`
