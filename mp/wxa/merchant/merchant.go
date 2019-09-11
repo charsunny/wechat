@@ -5,10 +5,25 @@ import (
 )
 
 // 绑定微信用户为小程序体验者
-func GetDistrict(clt *core.Client) (result map[string]interface{}, err error) {
+func GetDistrict(clt *core.Client) (list [][]map[string]interface{}, version string, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/wxa/get_district?access_token="
+
+	var result struct {
+		error core.Error
+		Status int `json:"status"`
+		Version string `json:"data_version"`
+		Result [][]map[string]interface{} `json:"result"`
+	}
+
 	if err = clt.GetJSON(incompleteURL, &result); err != nil {
 		return
 	}
+
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	version = result.Version
+	list = result.Result
 	return
 }
