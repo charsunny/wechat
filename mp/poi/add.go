@@ -32,7 +32,7 @@ type AddParameters struct {
 }
 
 // Add 创建门店.
-func Add(clt *core.Client, params *AddParameters) (err error) {
+func Add(clt *core.Client, params *AddParameters) (poiId int64, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/poi/addpoi?access_token="
 
 	var request = struct {
@@ -40,7 +40,10 @@ func Add(clt *core.Client, params *AddParameters) (err error) {
 	}{
 		AddParameters: params,
 	}
-	var result core.Error
+	var result struct{
+		core.Error
+		PoiId int64 `json:"poi_id"`
+	}
 	if err = clt.PostJSON(incompleteURL, &request, &result); err != nil {
 		return
 	}
@@ -48,5 +51,6 @@ func Add(clt *core.Client, params *AddParameters) (err error) {
 		err = &result
 		return
 	}
+	poiId = result.PoiId
 	return
 }
