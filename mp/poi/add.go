@@ -48,7 +48,7 @@ func Add(clt *core.Client, params *AddParameters) (poiId int64, err error) {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	poiId = result.PoiId
