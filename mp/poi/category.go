@@ -6,7 +6,7 @@ import (
 
 // CategoryList 获取门店类目表.
 func CategoryList(clt *core.Client) (list []string, err error) {
-	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/getwxcategory?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/poi/getwxcategory?access_token="
 
 	var result struct {
 		core.Error
