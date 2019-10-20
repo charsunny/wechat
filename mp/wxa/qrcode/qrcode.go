@@ -103,3 +103,115 @@ func CreateWxaCodeUnlimited(clt *core.Client, scene string, path string, width i
 	err = nil
 	return
 }
+
+type JumpRule struct {
+	Prefix string `json:"prefix"` // 二维码规则
+	PermitSubRule int `json:"permit_sub_rule"`	// 是否独占符合二维码前缀匹配规则的所有子规 1 为不占用，2 为占用; 详见
+	Path string `json:"path"`	// 小程序功能页面
+	OpenVersion int `json:"open_version"`	// 1 开发版 2 体验版 3 正式版
+	DebugUrl []string `json:"debug_url,omitempty"`	// 测试链接（选填）可填写不多于 5 个用于测试的二维码完整链接
+	State int `json:"state"` 	//发布标志位，1 表示未发布，2 表示已发布
+	IsEdit int `json:"is_edit"`	// 编辑标志位，0 表示新增二维码规则，1 表示修改已有二维码规则
+}
+
+// 获取已设置的二维码规则
+func GetQrcodeJump(clt *core.Client)(isopen, quota, count int, list []*JumpRule, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/qrcodejumpget?access_token="
+
+	var result struct {
+		core.Error
+		QrcodejumpOpen int `json:"qrcodejump_open"`
+		QrcodejumpPubQuota int `json:"qrcodejump_pub_quota"`
+		ListSize int `json:"list_size"`
+		RuleList []*JumpRule `json:"rule_list"`
+	}
+
+	if err = clt.PostJSON(incompleteURL, &map[string]string{}, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	isopen = result.QrcodejumpOpen
+	quota = result.QrcodejumpPubQuota
+	count = result.ListSize
+	list = result.RuleList
+	return
+}
+
+// 获取校验文件名称及内容
+func DownloadQrcodeJump(clt *core.Client)(filename, filecontent string, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/qrcodejumpdownload?access_token="
+
+	var result struct {
+		core.Error
+		file_name string `json:"file_name"`
+		file_content string `json:"file_content"`
+	}
+
+	if err = clt.PostJSON(incompleteURL, &map[string]string{}, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	filename = result.file_name
+	filecontent = result.file_content
+	return
+}
+
+// 增加或修改二维码规则
+func AddQrcodeJump(clt *core.Client, rule *JumpRule)(err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/qrcodejumpadd?access_token="
+
+	var result struct {
+		core.Error
+	}
+
+	if err = clt.PostJSON(incompleteURL, rule, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
+
+// 发布已设置的二维码规则
+func PublishQrcodeJump(clt *core.Client, prefix string)(err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/qrcodejumppublish?access_token="
+
+	var result struct {
+		core.Error
+	}
+
+	if err = clt.PostJSON(incompleteURL, &map[string]string{"prefix": prefix}, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
+
+// 发布已设置的二维码规则
+func DeleteQrcodeJump(clt *core.Client, prefix string)(filename, filecontent string, err error) {
+	const incompleteURL = "https://api.weixin.qq.com/cgi-bin/wxopen/qrcodejumpdelete?access_token="
+
+	var result struct {
+		core.Error
+	}
+
+	if err = clt.PostJSON(incompleteURL, &map[string]string{"prefix": prefix}, &result); err != nil {
+		return
+	}
+	if result.ErrCode != core.ErrCodeOK {
+		err = &result.Error
+		return
+	}
+	return
+}
