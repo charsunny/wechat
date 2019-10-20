@@ -146,8 +146,8 @@ func DownloadQrcodeJump(clt *core.Client)(filename, filecontent string, err erro
 
 	var result struct {
 		core.Error
-		file_name string `json:"file_name"`
-		file_content string `json:"file_content"`
+		FileName string `json:"file_name"`
+		FileContent string `json:"file_content"`
 	}
 
 	if err = clt.PostJSON(incompleteURL, &map[string]string{}, &result); err != nil {
@@ -157,8 +157,8 @@ func DownloadQrcodeJump(clt *core.Client)(filename, filecontent string, err erro
 		err = &result.Error
 		return
 	}
-	filename = result.file_name
-	filecontent = result.file_content
+	filename = result.FileName
+	filecontent = result.FileContent
 	return
 }
 
