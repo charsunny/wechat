@@ -20,7 +20,7 @@ func AuthCodeURL(appId, redirectURI, scope, state string) string {
 		"&redirect_uri=" + url.QueryEscape(redirectURI) +
 		"&response_type=code&scope=" + url.QueryEscape(scope) +
 		"&state=" + url.QueryEscape(state) +
-		"#wechat_redirect"
+		"&connect_redirect=1#wechat_redirect"
 }
 
 // Auth 检验授权凭证 access_token 是否有效.
