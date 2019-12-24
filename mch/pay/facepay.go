@@ -28,7 +28,7 @@ func GetWxpayfaceAuthinfo(clt *core.Client, req *FacepayAuthInfoRequest) (resp m
 	m1 := make(map[string]string)
 	m1["store_id"] = req.StoreId
 	m1["store_name"] = req.StoreName
-	m1["DeviceId"] = req.DeviceId
+	m1["device_id"] = req.DeviceId
 	m1["rawdata"] = req.Rawdata
 	m1["version"] = "1"
 	m1["now"] = fmt.Sprintf("%010d", time.Now().Unix())
