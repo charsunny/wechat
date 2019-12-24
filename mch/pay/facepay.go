@@ -39,6 +39,8 @@ func GetWxpayfaceAuthinfo(clt *core.Client, req *FacepayAuthInfoRequest) (resp m
 	}
 	if req.SignType != "" {
 		m1["sign_type"] = req.SignType
+	} else {
+		m1["sign_type"] = core.SignType_MD5
 	}
 
 	resp, err = clt.PostXML(core.APIAppURL()+"/face/get_wxpayface_authinfo", m1)
