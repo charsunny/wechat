@@ -25,7 +25,7 @@ type FacepayAuthInfoRequest struct {
 // Reverse2 撤销订单.
 //  NOTE: 请求需要双向证书.
 func GetWxpayfaceAuthinfo(clt *core.Client, req *FacepayAuthInfoRequest) (resp map[string]string, err error) {
-	m1 := make(map[string]string, 8)
+	m1 := make(map[string]string)
 	m1["store_id"] = req.StoreId
 	m1["store_name"] = req.StoreName
 	m1["DeviceId"] = req.DeviceId
@@ -40,7 +40,7 @@ func GetWxpayfaceAuthinfo(clt *core.Client, req *FacepayAuthInfoRequest) (resp m
 	if req.SignType != "" {
 		m1["sign_type"] = req.SignType
 	}
-
+	fmt.Sprintf(m1)
 	resp, err = clt.PostXML(core.APIAppURL()+"/face/get_wxpayface_authinfo", m1)
 	if err != nil {
 		return nil, err
