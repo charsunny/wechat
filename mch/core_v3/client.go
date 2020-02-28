@@ -1,16 +1,20 @@
 package core_v3
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
 const (
-	GATEWAY = "https://api.mch.weixin.qq.com/"
+	GATEWAY = "https://api.mch.weixin.qq.com"
 )
+const DEBUG bool = true
 
 type Client struct {
 	GateWay           string           // 网关
@@ -20,6 +24,7 @@ type Client struct {
 	PrivateKey        *rsa.PrivateKey  // 商户API私钥
 	Certificate       tls.Certificate  // 商户证书
 	WechatCertificate *tls.Certificate // 平台证书
+	httpClient        *http.Client     // http客户端
 }
 
 // 实例化一个客户端
@@ -31,6 +36,7 @@ func NewClient(merchantId, serialNumber, appSecret, certFile, keyFile string) (c
 	cli = new(Client)
 
 	cli.GateWay = GATEWAY
+	cli.SerialNumber = serialNumber
 	cli.MerchantId = merchantId
 	cli.AppSecret = appSecret
 
@@ -46,7 +52,74 @@ func NewClient(merchantId, serialNumber, appSecret, certFile, keyFile string) (c
 
 	cli.PrivateKey = pk
 	cli.Certificate = cert
+	cli.httpClient = http.DefaultClient
 
+	return
+}
+
+// GET一个API
+func (cli *Client) DoGet(url string) (resp []byte, err error) {
+
+	var req *http.Request
+	var sign, auth string
+
+	req, err = http.NewRequest("GET", GATEWAY+url, nil)
+	if err != nil {
+		return
+	}
+	req.Header.Add("Content-type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	// sign
+	sign, err = cli.Sign("GET", url, "")
+	if err != nil {
+		return
+	}
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, genRandomString(12), sign, timestamp(), cli.SerialNumber)
+	if DEBUG {
+		fmt.Println("auth:", auth)
+	}
+	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+
+	respser, err := cli.httpClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer respser.Body.Close()
+	resp, err = ioutil.ReadAll(respser.Body)
+	return
+}
+
+// POST一个API
+func (cli *Client) DoPost(url, body string) (resp []byte, err error) {
+	var req *http.Request
+	var sign, auth string
+
+	req, err = http.NewRequest("POST", GATEWAY+url, bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		return
+	}
+	req.Header.Add("Content-type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	// sign
+	sign, err = cli.Sign("POST", url, body)
+	if err != nil {
+		return
+	}
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, genRandomString(12), sign, timestamp(), cli.SerialNumber)
+	if DEBUG {
+		fmt.Println("auth:", auth)
+	}
+	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	respser, err := cli.httpClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer respser.Body.Close()
+	resp, err = ioutil.ReadAll(respser.Body)
 	return
 }
 
