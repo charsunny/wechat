@@ -25,6 +25,8 @@ type CertResponse struct {
 }
 
 // 获取微信支付平台证书
+// 平台证书会周期性更换。建议商户定时通过API下载新的证书
+// 可以弄个Cronjob线程周期执行这个方法
 func (cli *Client) GetWechatCertificate() (err error) {
 	var certResp *CertResponse
 	var resp, plaintext, ciphertext, nonce, ad []byte
