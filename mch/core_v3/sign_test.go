@@ -7,6 +7,7 @@ import (
 
 // 签名
 func Test_Signer(t *testing.T) {
+	fmt.Println("----------------------------------")
 	fmt.Println("Testing sign")
 	var err error
 	var cli *Client

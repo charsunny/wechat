@@ -17,14 +17,14 @@ const (
 const DEBUG bool = true
 
 type Client struct {
-	GateWay           string           // 网关
-	MerchantId        string           // 商户id
-	SerialNumber      string           // 序列号
-	AppSecret         string           // 商户密钥 微信支付在回调通知和平台证书下载接口中，对关键信息进行了AES-256-GCM加密
-	PrivateKey        *rsa.PrivateKey  // 商户API私钥
-	Certificate       tls.Certificate  // 商户证书
-	WechatCertificate *tls.Certificate // 平台证书
-	httpClient        *http.Client     // http客户端
+	GateWay           string            // 网关
+	MerchantId        string            // 商户id
+	SerialNumber      string            // 序列号
+	AppSecret         string            // 商户密钥 微信支付在回调通知和平台证书下载接口中，对关键信息进行了AES-256-GCM加密
+	PrivateKey        *rsa.PrivateKey   // 商户API私钥
+	Certificate       *tls.Certificate  // 商户证书
+	WechatCertificate *x509.Certificate // 平台证书
+	httpClient        *http.Client      // http客户端
 }
 
 // 实例化一个客户端
@@ -51,7 +51,7 @@ func NewClient(merchantId, serialNumber, appSecret, certFile, keyFile string) (c
 	}
 
 	cli.PrivateKey = pk
-	cli.Certificate = cert
+	cli.Certificate = &cert
 	cli.httpClient = http.DefaultClient
 
 	return
@@ -76,9 +76,6 @@ func (cli *Client) DoGet(url string) (resp []byte, err error) {
 		return
 	}
 	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, genRandomString(12), sign, timestamp(), cli.SerialNumber)
-	if DEBUG {
-		fmt.Println("auth:", auth)
-	}
 	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
 
 	respser, err := cli.httpClient.Do(req)
