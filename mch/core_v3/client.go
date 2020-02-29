@@ -14,7 +14,7 @@ import (
 const (
 	GATEWAY = "https://api.mch.weixin.qq.com"
 )
-const DEBUG bool = true
+const DEBUG bool = false
 
 type Client struct {
 	GateWay           string            // 网关
