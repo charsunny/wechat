@@ -100,9 +100,6 @@ func (cli *Client) Sign(method, url, body, nonce string) (sign string, err error
 	var hashed []byte
 
 	string2sign = method + "\n" + url + "\n" + timestamp() + "\n" + nonce + "\n" + body + "\n"
-	// if DEBUG {
-	// 	fmt.Println("string to sign: ", string2sign)
-	// }
 
 	digest = sha256.Sum256([]byte(string2sign))
 	hashed, err = rsa.SignPKCS1v15(nil, cli.PrivateKey, crypto.SHA256, digest[:])

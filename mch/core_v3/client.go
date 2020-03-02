@@ -2,19 +2,29 @@ package core_v3
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 const (
 	GATEWAY = "https://api.mch.weixin.qq.com"
 )
 const DEBUG bool = true
+
+var Cli *Client // 默认客户端
+var UserAgent string
 
 type Client struct {
 	GateWay            string            // 网关
@@ -80,6 +90,7 @@ func (cli *Client) DoGet(url string, needVerify ...bool) (resp []byte, err error
 
 	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
 	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	req.Header.Add("User-Agent", UserAgent)
 
 	respser, err := cli.httpClient.Do(req)
 	if err != nil {
@@ -120,6 +131,8 @@ func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, er
 	}
 	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
 	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	req.Header.Add("User-Agent", UserAgent)
+
 	respser, err := cli.httpClient.Do(req)
 	if err != nil {
 		return
@@ -138,6 +151,93 @@ func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, er
 	}
 
 	return
+}
+
+// 敏感信息加密
+// https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/min-gan-xin-xi-jia-mi
+func (cli *Client) SecretFieldEncrypt(plaintext []byte) (ciphertext string, err error) {
+	var cipherdata []byte
+	cipherdata, err = rsa.EncryptOAEP(sha1.New(), rand.Reader, (cli.WechatCertificate.PublicKey).(*rsa.PublicKey), plaintext, nil)
+	if err != nil {
+		return
+	}
+	ciphertext = base64.StdEncoding.EncodeToString(cipherdata)
+	return
+}
+
+// 图片上传
+// https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/chapter3_1.shtml
+func (cli *Client) ImageUpload(content []byte, filename string) (mediaId string, err error) {
+	var format, meta, string2sign, sign, boundary, nonce, body, auth string
+	var hashed, resp []byte
+	var digest [32]byte
+	var req *http.Request
+
+	format = strings.Split(filename, ".")[1]
+	if format == "jpg" || format == "bmp" || format == "png" {
+		// pass
+	} else {
+		err = fmt.Errorf("format not allowed")
+		return
+	}
+
+	sum := sha256.Sum256(content)
+	meta = fmt.Sprintf("{\"filename\":\"%s\",\"sha256\":\"%x\"}", filename, sum)
+	nonce = genRandomString(12)
+	string2sign = "POST\n" + "/v3/merchant/media/upload\n" + timestamp() + "\n" + nonce + "\n" + meta + "\n"
+
+	fmt.Println(string2sign)
+
+	digest = sha256.Sum256([]byte(string2sign))
+	hashed, err = rsa.SignPKCS1v15(nil, cli.PrivateKey, crypto.SHA256, digest[:])
+	if err != nil {
+		return
+	}
+
+	sign = base64.StdEncoding.EncodeToString(hashed)
+
+	boundary = "------------" + genRandomString(12)
+
+	body = "--" + boundary + "\r\n" + "Content-Disposition: form-data; name=\"meta\";" + "\r\n" + "Content-Type: application/json" + "\r\n\r\n" + meta + "\r\n--" + boundary + "\r\n" + fmt.Sprintf("Content-Disposition: form-data; name=\"file\"; filename=\"%s\";", filename) + "\r\n" + fmt.Sprintf("Content-Type: image/%s", format) + "\r\n\r\n" + string(content) + "\r\n--" + boundary + "--\r\n"
+
+	req, err = http.NewRequest("POST", GATEWAY+"/v3/merchant/media/upload", bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		return
+	}
+
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data.image/%s", format))
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
+	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data;boundary=\"%s\"", boundary))
+	req.Header.Add("User-Agent", UserAgent)
+	req.Header.Add("Accept", "application/json")
+
+	respser, err := cli.httpClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer respser.Body.Close()
+	resp, err = ioutil.ReadAll(respser.Body)
+	if err != nil {
+		return
+	}
+
+	type UploadResult struct {
+		MediaId string `json:"media_id"` // 媒体文件标识 Id
+	}
+	var res *UploadResult
+
+	fmt.Println(string(resp))
+	res = new(UploadResult)
+	err = json.Unmarshal(resp, res)
+	if err != nil {
+		return
+	}
+
+	mediaId = res.MediaId
+	return
+
 }
 
 // 加载一个私钥
