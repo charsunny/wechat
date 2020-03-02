@@ -5,17 +5,16 @@ import (
 	"testing"
 )
 
-// 签名
-func Test_Sign(t *testing.T) {
+func Test_GetWechatCertificate(t *testing.T) {
 	fmt.Println("----------------------------------")
-	fmt.Println("Testing sign")
+	fmt.Println("Testing get wechat certificate")
+
 	var err error
 	var cli *Client
 
-	cli, err = NewClient("1533391551", "", "001rsrs001001rsrs001001rsrs001nb", "./apiclient_cert.pem", "./apiclient_key.pem")
-	assertEqual(t, err, nil)
+	cli, _ = NewClient("1533391551", "72E6A550FCCC4AB90E1699D06989669221DF167A", "001rsrs001001rsrs001001rsrs001nb", "./apiclient_cert.pem", "./apiclient_key.pem")
 
-	_, err = cli.Sign("GET", "/v3/certificates", "", "12345")
+	err = cli.GetWechatCertificate()
 	assertEqual(t, err, nil)
 	return
 }

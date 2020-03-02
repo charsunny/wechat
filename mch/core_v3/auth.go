@@ -12,6 +12,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/rand"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -73,9 +75,9 @@ func (cli *Client) GetWechatCertificate() (err error) {
 		return
 	}
 
-	if DEBUG {
-		fmt.Printf("%s\n", string(plaintext))
-	}
+	// if DEBUG {
+	// 	fmt.Printf("%s\n", string(plaintext))
+	// }
 
 	// 加载证书
 	pblock, _ = pem.Decode([]byte(plaintext))
@@ -86,17 +88,21 @@ func (cli *Client) GetWechatCertificate() (err error) {
 	}
 
 	cli.WechatCertificate = cert
+	cli.WechatSerialNumber = strings.ToUpper(cert.SerialNumber.Text(16))
 	return
 }
+
+// 加签
+// https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/qian-ming-sheng-cheng
 func (cli *Client) Sign(method, url, body, nonce string) (sign string, err error) {
 	var string2sign string
 	var digest [32]byte
 	var hashed []byte
 
 	string2sign = method + "\n" + url + "\n" + timestamp() + "\n" + nonce + "\n" + body + "\n"
-	if DEBUG {
-		fmt.Println("string to sign: ", string2sign)
-	}
+	// if DEBUG {
+	// 	fmt.Println("string to sign: ", string2sign)
+	// }
 
 	digest = sha256.Sum256([]byte(string2sign))
 	hashed, err = rsa.SignPKCS1v15(nil, cli.PrivateKey, crypto.SHA256, digest[:])
@@ -109,11 +115,44 @@ func (cli *Client) Sign(method, url, body, nonce string) (sign string, err error
 	return
 }
 
-func genRandomString(size int) string {
+// 验签
+// https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/qian-ming-yan-zheng
+func (cli *Client) Verify(resp *http.Response, body []byte) bool {
+	var wechatpaySerial, wechatpayTimestamp, wechatpayNonce, wechatpaySignature string
+	var sig, digest []byte
+	var err error
+	var string2verify string
 
-	if DEBUG {
-		return "123456"
+	wechatpaySerial = resp.Header.Get("Wechatpay-Serial")
+	wechatpayTimestamp = resp.Header.Get("Wechatpay-Timestamp")
+	wechatpayNonce = resp.Header.Get("Wechatpay-Nonce")
+	wechatpaySignature = resp.Header.Get("Wechatpay-Signature")
+
+	if wechatpaySerial != cli.WechatSerialNumber {
+		fmt.Println(wechatpaySerial, cli.WechatSerialNumber)
+		return false
 	}
+
+	string2verify = fmt.Sprintf("%s\n%s\n%s\n", wechatpayTimestamp, wechatpayNonce, string(body))
+	// if DEBUG {
+	// 	fmt.Println(digest)
+	// }
+	h := sha256.New()
+	h.Write([]byte(string2verify))
+	digest = h.Sum(nil)
+
+	sig, _ = base64.StdEncoding.DecodeString(wechatpaySignature)
+
+	err = rsa.VerifyPKCS1v15((cli.WechatCertificate.PublicKey).(*rsa.PublicKey), crypto.SHA256, digest, sig)
+	if err != nil {
+		fmt.Println("verify error:", err)
+		return false
+	}
+	return true
+
+}
+
+func genRandomString(size int) string {
 
 	var a, b []byte
 	var i int
