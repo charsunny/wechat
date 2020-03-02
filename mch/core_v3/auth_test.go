@@ -6,7 +6,7 @@ import (
 )
 
 // 签名
-func Test_Signer(t *testing.T) {
+func Test_Sign(t *testing.T) {
 	fmt.Println("----------------------------------")
 	fmt.Println("Testing sign")
 	var err error
@@ -15,7 +15,7 @@ func Test_Signer(t *testing.T) {
 	cli, err = NewClient("1533391551", "", "001rsrs001001rsrs001001rsrs001nb", "./apiclient_cert.pem", "./apiclient_key.pem")
 	assertEqual(t, err, nil)
 
-	_, err = cli.Sign("GET", "/v3/certificates", "")
+	_, err = cli.Sign("GET", "/v3/certificates", "", "12345")
 	assertEqual(t, err, nil)
 	return
 }

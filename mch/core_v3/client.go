@@ -61,7 +61,7 @@ func NewClient(merchantId, serialNumber, appSecret, certFile, keyFile string) (c
 func (cli *Client) DoGet(url string) (resp []byte, err error) {
 
 	var req *http.Request
-	var sign, auth string
+	var sign, auth, nonce string
 
 	req, err = http.NewRequest("GET", GATEWAY+url, nil)
 	if err != nil {
@@ -71,12 +71,17 @@ func (cli *Client) DoGet(url string) (resp []byte, err error) {
 	req.Header.Add("Accept", "application/json")
 
 	// sign
-	sign, err = cli.Sign("GET", url, "")
+	nonce = genRandomString(12)
+	sign, err = cli.Sign("GET", url, "", nonce)
 	if err != nil {
 		return
 	}
-	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, genRandomString(12), sign, timestamp(), cli.SerialNumber)
+
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
 	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	if DEBUG {
+		fmt.Println("auth:", auth)
+	}
 
 	respser, err := cli.httpClient.Do(req)
 	if err != nil {
@@ -91,7 +96,7 @@ func (cli *Client) DoGet(url string) (resp []byte, err error) {
 // POST一个API
 func (cli *Client) DoPost(url, body string) (resp []byte, err error) {
 	var req *http.Request
-	var sign, auth string
+	var sign, auth, nonce string
 
 	req, err = http.NewRequest("POST", GATEWAY+url, bytes.NewBuffer([]byte(body)))
 	if err != nil {
@@ -101,11 +106,12 @@ func (cli *Client) DoPost(url, body string) (resp []byte, err error) {
 	req.Header.Add("Accept", "application/json")
 
 	// sign
-	sign, err = cli.Sign("POST", url, body)
+	nonce = genRandomString(12)
+	sign, err = cli.Sign("POST", url, body, nonce)
 	if err != nil {
 		return
 	}
-	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, genRandomString(12), sign, timestamp(), cli.SerialNumber)
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
 	if DEBUG {
 		fmt.Println("auth:", auth)
 	}
