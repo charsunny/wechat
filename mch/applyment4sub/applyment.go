@@ -138,6 +138,39 @@ type ApplymentReply struct {
 	ApplymentId string `json:"applyment_id"`
 }
 
+type ApplymentQueryReply struct {
+	BusinessCode      string `json:"business_code"`       // 业务申请编号
+	ApplymentId       string `json:"applyment_id"`        // 微信支付申请单号
+	SubMchid          string `json:"sub_mchid"`           // 特约商户号
+	SignUrl           string `json:"sign_url"`            // 超级管理员签约链接
+	ApplymentState    string `json:"applyment_state"`     // 申请单状态
+	ApplymentStateMsg string `json:"applyment_state_msg"` // 申请状态描述
+	AuditDetail       struct {
+		Field        string `json:"field"`         // 字段名
+		FieldName    string `json:"field_name"`    // 字段名称
+		RejectReason string `json:"reject_reason"` // 驳回原因
+	} `json:"audit_detail"` // 驳回原因详情
+}
+
+type ModifySettlementReq struct {
+	SubMchid        string `json:"sub_mchid"`                // 特约商户号
+	AccountType     string `json:"account_type"`             // 账户类型
+	AccountBank     string `json:"account_bank"`             // 开户银行
+	BankAddressCode string `json:"bank_address_code"`        // 开户银行省市编码
+	BankName        string `json:"bank_name,omitempty"`      // 开户银行全称（含支行）
+	BankBranchId    string `json:"bank_branch_id,omitempty"` // 开户银行联行号
+	AccountNumber   string `json:"account_number"`           // 银行账号
+}
+
+type QuerySettlementReply struct {
+	AccountType   string `json:"account_type"`   // 账户类型
+	AccountBank   string `json:"account_bank"`   // 开户银行
+	BankName      string `json:"bank_name"`      // 开户银行全称（含支行）
+	BankBranchId  string `json:"bank_branch_id"` // 开户银行联行号
+	AccountNumber string `json:"account_number"` // 银行账号
+	VerifyResult  string `json:"verify_result"`  // 汇款验证结果
+}
+
 // 提交申请单API
 // doc: https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/applyment4sub/chapter3_1.shtml
 func Applyment(cli *core.Client, params *ApplymentReq) (applymentId string, err error) {
@@ -145,7 +178,7 @@ func Applyment(cli *core.Client, params *ApplymentReq) (applymentId string, err 
 	var reply *ApplymentReply
 
 	body, _ = json.Marshal(parmas)
-	resp, err = cli.DoPost("/v3/applyment4sub/applyment/", string(body))
+	resp, err = cli.DoPost("/v3/applyment4sub/applyment/", string(body), true)
 	if err != nil {
 		return
 	}
@@ -157,5 +190,65 @@ func Applyment(cli *core.Client, params *ApplymentReq) (applymentId string, err 
 	}
 
 	applymentId = reply.ApplymentId
+	return
+}
+
+// 查询申请单状态API
+// doc: https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/applyment4sub/chapter3_2.shtml
+func QueryApplymentState(cli *core.Client, applymentId string) (state *ApplymentQueryReply, err error) {
+	var resp []byte
+
+	resp, err = cli.DoGet(fmt.Sprintf("/v3/applyment4sub/applyment/applyment_id/%s", applymentId), true)
+	if err != nil {
+		return
+	}
+
+	state = new(ApplymentQueryReply)
+	err = json.Unmarshal(resp, state)
+	return
+}
+
+// 通过业务申请编号查询申请状态
+func QueryApplymentStateByCode(cli *core.Client, bussinessCode string) (state *ApplymentQueryReply, err error) {
+	var resp []byte
+
+	resp, err = cli.DoGet(fmt.Sprintf("/v3/applyment4sub/applyment/business_code/%s", bussinessCode), true)
+	if err != nil {
+		return
+	}
+
+	state = new(ApplymentQueryReply)
+	err = json.Unmarshal(resp, state)
+	return
+}
+
+// 修改结算帐号API
+// doc: https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/applyment4sub/chapter3_3.shtml
+func ModifySettlement(cli *core.Client, params *ModifySettlementReq) (flag bool, err error) {
+	var body []byte
+	var code int
+
+	body, _ = json.Marshal(parmas)
+	_, code, err = cli.DoPost(fmt.Sprintf("/v3/apply4sub/sub_merchants/%s/modify-settlement", params.SubMchid), string(body))
+	if err != nil {
+		return
+	}
+	if code == 204 {
+		flag = true
+	}
+	return
+}
+
+// 查询结算账户API
+func QuerySettlement(cli *core.Client, subMchid string) (reply *QuerySettlementReply, err error) {
+	var resp []byte
+
+	resp, err = cli.DoGet(fmt.Sprintf("/v3/apply4sub/sub_merchants/%s/settlement", subMchid), true)
+	if err != nil {
+		return
+	}
+
+	reply = new(QuerySettlementReply)
+	err = json.Unmarshal(resp, reply)
 	return
 }

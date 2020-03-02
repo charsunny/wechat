@@ -112,7 +112,7 @@ func (cli *Client) DoGet(url string, needVerify ...bool) (resp []byte, err error
 }
 
 // POST一个API
-func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, err error) {
+func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, httpCode int, err error) {
 	var req *http.Request
 	var sign, auth, nonce string
 
@@ -137,8 +137,9 @@ func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, er
 	if err != nil {
 		return
 	}
-
 	defer respser.Body.Close()
+
+	httpCode = respser.StatusCode
 	resp, err = ioutil.ReadAll(respser.Body)
 	if err != nil {
 		return
