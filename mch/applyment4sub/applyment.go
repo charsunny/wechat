@@ -178,7 +178,7 @@ func Applyment(cli *core.Client, params *ApplymentReq) (applymentId string, err 
 	var reply *ApplymentReply
 
 	body, _ = json.Marshal(parmas)
-	resp, err = cli.DoPost("/v3/applyment4sub/applyment/", string(body), true)
+	resp, _, err = cli.DoPost("/v3/applyment4sub/applyment/", string(body), true)
 	if err != nil {
 		return
 	}
