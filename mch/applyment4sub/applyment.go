@@ -135,12 +135,12 @@ type ApplymentReq struct {
 }
 
 type ApplymentReply struct {
-	ApplymentId string `json:"applyment_id"`
+	ApplymentId int64 `json:"applyment_id"`
 }
 
 type ApplymentQueryReply struct {
 	BusinessCode      string `json:"business_code"`       // 业务申请编号
-	ApplymentId       string `json:"applyment_id"`        // 微信支付申请单号
+	ApplymentId       int64  `json:"applyment_id"`        // 微信支付申请单号
 	SubMchid          string `json:"sub_mchid"`           // 特约商户号
 	SignUrl           string `json:"sign_url"`            // 超级管理员签约链接
 	ApplymentState    string `json:"applyment_state"`     // 申请单状态
@@ -173,7 +173,7 @@ type QuerySettlementReply struct {
 
 // 提交申请单API
 // doc: https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/applyment4sub/chapter3_1.shtml
-func Applyment(cli *core.Client, params *ApplymentReq) (applymentId string, err error) {
+func Applyment(cli *core.Client, params *ApplymentReq) (applymentId int64, err error) {
 	var body, resp []byte
 	var reply *ApplymentReply
 
@@ -195,10 +195,10 @@ func Applyment(cli *core.Client, params *ApplymentReq) (applymentId string, err 
 
 // 查询申请单状态API
 // doc: https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/applyment4sub/chapter3_2.shtml
-func QueryApplymentState(cli *core.Client, applymentId string) (state *ApplymentQueryReply, err error) {
+func QueryApplymentState(cli *core.Client, applymentId int64) (state *ApplymentQueryReply, err error) {
 	var resp []byte
 
-	resp, err = cli.DoGet(fmt.Sprintf("/v3/applyment4sub/applyment/applyment_id/%s", applymentId), true)
+	resp, err = cli.DoGet(fmt.Sprintf("/v3/applyment4sub/applyment/applyment_id/%d", applymentId), true)
 	if err != nil {
 		return
 	}
