@@ -195,10 +195,10 @@ func Applyment(cli *core.Client, params *ApplymentReq) (applymentId int64, err e
 
 // 查询申请单状态API
 // doc: https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/applyment4sub/chapter3_2.shtml
-func QueryApplymentState(cli *core.Client, applymentId string) (state *ApplymentQueryReply, err error) {
+func QueryApplymentState(cli *core.Client, applymentId int64) (state *ApplymentQueryReply, err error) {
 	var resp []byte
 
-	resp, err = cli.DoGet(fmt.Sprintf("/v3/applyment4sub/applyment/applyment_id/%s", applymentId), true)
+	resp, err = cli.DoGet(fmt.Sprintf("/v3/applyment4sub/applyment/applyment_id/%d", applymentId), true)
 	if err != nil {
 		return
 	}
