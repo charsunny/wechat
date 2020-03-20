@@ -2,6 +2,7 @@ package applyment4sub
 
 import (
 	"encoding/json"
+	"fmt"
 
 	core "github.com/charsunny/wechat/mch/core_v3"
 )
@@ -177,7 +178,7 @@ func Applyment(cli *core.Client, params *ApplymentReq) (applymentId int64, err e
 	var body, resp []byte
 	var reply *ApplymentReply
 
-	body, _ = json.Marshal(parmas)
+	body, _ = json.Marshal(params)
 	resp, _, err = cli.DoPost("/v3/applyment4sub/applyment/", string(body), true)
 	if err != nil {
 		return
@@ -228,7 +229,7 @@ func ModifySettlement(cli *core.Client, params *ModifySettlementReq) (flag bool,
 	var body []byte
 	var code int
 
-	body, _ = json.Marshal(parmas)
+	body, _ = json.Marshal(params)
 	_, code, err = cli.DoPost(fmt.Sprintf("/v3/apply4sub/sub_merchants/%s/modify-settlement", params.SubMchid), string(body))
 	if err != nil {
 		return
