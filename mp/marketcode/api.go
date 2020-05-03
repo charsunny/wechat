@@ -15,14 +15,14 @@ func ApplyCode(clt *core.Client, count int64, isv_application_id string) (applic
 		"isv_application_id": isv_application_id,
 	}
 	var result struct{
-		ApplicationId int64 `json:"application_id"`
 		core.Error
+		ApplicationId int64 `json:"application_id"`
 	}
 	if err = clt.PostJSON(incompleteURL, &req, &result); err != nil {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	application_id = result.ApplicationId
@@ -41,14 +41,14 @@ func QueryApplyCode(clt *core.Client, application_id int64, isv_application_id s
 		"isv_application_id": isv_application_id,
 	}
 	var result struct{
-		MarketCodeApply
 		core.Error
+		MarketCodeApply
 	}
 	if err = clt.PostJSON(incompleteURL, &req, &result); err != nil {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	apply = result.MarketCodeApply
@@ -68,14 +68,14 @@ func DownloadApplyCode(clt *core.Client, app_id int64, code_start int64, code_en
 		"code_end": code_end,
 	}
 	var result struct{
-		Buffer string `json:"buffer"`
 		core.Error
+		Buffer string `json:"buffer"`
 	}
 	if err = clt.PostJSON(incompleteURL, &req, &result); err != nil {
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	buffer = result.Buffer
@@ -112,7 +112,7 @@ func QueryActiveCode(clt *core.Client, application_id , index int64,  url, code 
 		"code": code,
 	}
 
-	var result struct{
+	var result struct {
 		core.Error
 		ActiveCodeInfo
 	}
@@ -120,7 +120,7 @@ func QueryActiveCode(clt *core.Client, application_id , index int64,  url, code 
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	info = result.ActiveCodeInfo
@@ -147,7 +147,7 @@ func TicketToCode(clt *core.Client, openid, code_ticket string ) (info ActiveCod
 		return
 	}
 	if result.ErrCode != core.ErrCodeOK {
-		err = &result
+		err = &result.Error
 		return
 	}
 	info = result.ActiveCodeInfo
