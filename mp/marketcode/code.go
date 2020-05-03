@@ -4,8 +4,8 @@ type MarketCodeApply struct {
 	Status string `json:"status"` // INIT PROCESSING FINISH为可下载
 	IsvApplicationId string `json:"isv_application_id"` //
 	ApplicationId int64 `json:"application_id"` //
-	CreateTime string `json:"create_time"` //
-	UpdateTime string `json:"update_time"` //
+	CreateTime int64 `json:"create_time"` //
+	UpdateTime int64 `json:"update_time"` //
 	CodeGenerateList []struct{
 		CodeStart int64 `json:"code_start"` // 包含，如0
 		CodeEnd int64 `json:"code_end"` // 包含，如49999，上述0-49999为一个号码段
