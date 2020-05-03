@@ -59,10 +59,11 @@ func QueryApplyCode(clt *core.Client, application_id int64, isv_application_id s
 // @param code_start	开始位置	Uint64	Y	来自查询二维码申请接口
 // @param code_end	结束位置	Uint64	Y	来自查询二维码申请接口
 // @return buffer	文件buffer	String128	Y	需要先base64 decode，再做解密操作（解密参见3.1）
-func DownloadApplyCode(clt *core.Client, code_start int64, code_end int64) (buffer string, err error) {
+func DownloadApplyCode(clt *core.Client, app_id int64, code_start int64, code_end int64) (buffer string, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/intp/marketcode/applycodedownload?access_token="
 
 	req := map[string]interface{} {
+		"application_id": app_id,
 		"code_start": code_start,
 		"code_end": code_end,
 	}
