@@ -104,12 +104,16 @@ func ActiveCode(clt *core.Client, info *ActiveCodeInfo) (err error) {
 // code	九位的字符串原始码	String16	N	code与code_url二选一
 func QueryActiveCode(clt *core.Client, application_id , index int64,  url, code string ) (info ActiveCodeInfo, err error) {
 	const incompleteURL = "https://api.weixin.qq.com/intp/marketcode/codeactivequery?access_token="
-
 	req := map[string]interface{} {
-		"application_id": application_id,
-		"code_index": index,
-		"code_url": url,
-		"code": code,
+	}
+
+	if url != "" {
+		req["code_url"] = url
+	} else if code != "" {
+		req["code"] = url
+	} else {
+		req["application_id"] = application_id
+		req["index"] = index
 	}
 
 	var result struct {
