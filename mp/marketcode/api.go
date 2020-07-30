@@ -103,7 +103,7 @@ func ActiveCode(clt *core.Client, info *ActiveCodeInfo) (err error) {
 // code_url	28位普通码字符	String128	N	code与code_url二选一
 // code	九位的字符串原始码	String16	N	code与code_url二选一
 func QueryActiveCode(clt *core.Client, application_id , index int64,  url, code string ) (info ActiveCodeInfo, err error) {
-	const incompleteURL = "https://api.weixin.qq.com/intp/marketcode/codeactive?access_token="
+	const incompleteURL = "https://api.weixin.qq.com/intp/marketcode/codeactivequery?access_token="
 
 	req := map[string]interface{} {
 		"application_id": application_id,
