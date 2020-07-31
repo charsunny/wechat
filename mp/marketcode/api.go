@@ -110,7 +110,7 @@ func QueryActiveCode(clt *core.Client, application_id , index int64,  url, code 
 	if url != "" {
 		req["code_url"] = url
 	} else if code != "" {
-		req["code"] = url
+		req["code"] = code
 	} else {
 		req["application_id"] = application_id
 		req["index"] = index
