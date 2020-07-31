@@ -174,11 +174,13 @@ func (clt *Client) postXML(url string, body []byte, reqSignType string) (resp ma
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, true, fmt.Errorf("http.Status: %s", httpResp.Status)
 	}
-	fmt.Println("wechat api resp:", string(httpResp.Body))
+
 	resp, err = api.DecodeXMLHttpResponse(httpResp.Body)
 	if err != nil {
 		return nil, false, err
 	}
+
+	fmt.Println("wechat api resp:", resp)
 
 	// 判断协议状态
 	returnCode := resp["return_code"]
