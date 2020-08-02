@@ -29,6 +29,7 @@ type UnifiedOrderRequest struct {
 	TradeType      string `xml:"trade_type"`       // 取值如下：JSAPI，NATIVE，APP，详细说明见参数规定
 
 	// 可选参数
+	ProfitSharing string `xml:"profit_sharing"` //Y-是，需要分账 N-否，不分账 字母要求大写，不传默认不分账
 	DeviceInfo string    `xml:"device_info"` // 终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传"WEB"
 	NonceStr   string    `xml:"nonce_str"`   // 随机字符串，不长于32位。NOTE: 如果为空则系统会自动生成一个随机字符串。
 	SignType   string    `xml:"sign_type"`   // 签名类型，默认为MD5，支持HMAC-SHA256和MD5。
