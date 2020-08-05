@@ -10,7 +10,7 @@ func SendRedPack(clt *core.Client, req map[string]string) (resp map[string]strin
 	return clt.PostXML(core.APIBaseURL()+"/mmpaymkttransfers/sendredpack", req)
 }
 
-// 红包发放.
+// 小程序红包发放.
 //  NOTE: 请求需要双向证书
 func SendMpRedPack(clt *core.Client, req map[string]string) (resp map[string]string, err error) {
 	return clt.PostXML(core.APIBaseURL()+"/mmpaymkttransfers/sendminiprogramhb", req)

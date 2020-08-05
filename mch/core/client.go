@@ -137,7 +137,6 @@ func (clt *Client) PostXML(url string, req map[string]string) (resp map[string]s
 		return nil, err
 	}
 	body := buffer.Bytes()
-	fmt.Println(string(body))
 	hasRetried := false
 RETRY:
 	resp, needRetry, err := clt.postXML(url, body, reqSignType)
@@ -181,6 +180,8 @@ func (clt *Client) postXML(url string, body []byte, reqSignType string) (resp ma
 		return nil, false, err
 	}
 
+	fmt.Println("wechat api resp:", resp)
+
 	// 判断协议状态
 	returnCode := resp["return_code"]
 	if returnCode == "" {
@@ -193,26 +194,32 @@ func (clt *Client) postXML(url string, body []byte, reqSignType string) (resp ma
 		}
 	}
 
+	needCheck := true
+	if url == "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendminiprogramhb" ||
+		url == "https://api2.mch.weixin.qq.com/mmpaymkttransfers/sendminiprogramhb" {
+		needCheck = false
+	}
+
 	// 验证 appid 和 mch_id
 	appId := resp["appid"]
 	if appId != "" && appId != clt.appId {
 		return nil, false, fmt.Errorf("appid mismatch, have: %s, want: %s", appId, clt.appId)
 	}
 	mchId := resp["mch_id"]
-	if mchId != "" && mchId != clt.mchId {
+	if mchId != "" && mchId != clt.mchId && needCheck {
 		return nil, false, fmt.Errorf("mch_id mismatch, have: %s, want: %s", mchId, clt.mchId)
 	}
 
 	// 验证 sub_appid 和 sub_mch_id
 	if clt.subAppId != "" {
 		subAppId := resp["sub_appid"]
-		if subAppId != "" && subAppId != clt.subAppId {
+		if subAppId != "" && subAppId != clt.subAppId && needCheck {
 			return nil, false, fmt.Errorf("sub_appid mismatch, have: %s, want: %s", subAppId, clt.subAppId)
 		}
 	}
 	if clt.subMchId != "" {
 		subMchId := resp["sub_mch_id"]
-		if subMchId != "" && subMchId != clt.subMchId {
+		if subMchId != "" && subMchId != clt.subMchId && needCheck {
 			return nil, false, fmt.Errorf("sub_mch_id mismatch, have: %s, want: %s", subMchId, clt.subMchId)
 		}
 	}
@@ -229,6 +236,8 @@ func (clt *Client) postXML(url string, body []byte, reqSignType string) (resp ma
 		case "https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo", "https://api2.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo":
 		// do nothing
 		case "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack", "https://api2.mch.weixin.qq.com/mmpaymkttransfers/sendredpack":
+			// do nothing
+		case "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendminiprogramhb", "https://api2.mch.weixin.qq.com/mmpaymkttransfers/sendminiprogramhb":
 			// do nothing
 		case "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendgroupredpack", "https://api2.mch.weixin.qq.com/mmpaymkttransfers/sendgroupredpack":
 			// do nothing
