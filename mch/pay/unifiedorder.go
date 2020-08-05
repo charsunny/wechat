@@ -127,6 +127,9 @@ func UnifiedOrder2(clt *core.Client, req *UnifiedOrderRequest) (resp *UnifiedOrd
 	if req.SceneInfo != "" {
 		m1["scene_info"] = req.SceneInfo
 	}
+	if req.ProfitSharing != "" {
+		m1["profit_sharing"] = req.ProfitSharing
+	}
 
 	m2, err := UnifiedOrder(clt, m1)
 	if err != nil {
