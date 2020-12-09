@@ -162,7 +162,7 @@ func (this *Client) DoPost(url string, body string) ([]byte, error) {
 func (this *Client) getToken(method string, url string, body string) string {
 	var t int64 = time.Now().Unix()
 	msg := this.buildSignatureMsg(method, url, t, body)
-	signer := this.sign(msg)
+	signer := this.Sign(msg)
 	return fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",timestamp=\"%d\",serial_no=\"%s\",signature=\"%s\"", this.MerchantId, this.Nonce, t, this.merchantCertificateSerialNo, signer)
 }
 
@@ -176,7 +176,7 @@ func (this *Client) buildSignatureMsg(method string, urlstr string, timestamp in
 
 }
 
-func (this *Client) sign(msg string) string {
+func (this *Client) Sign(msg string) string {
 	h := sha256.New()
 	h.Write([]byte(msg))
 	digest := h.Sum(nil)
@@ -234,10 +234,14 @@ func (this *Client) DownloadFlatPublicKey(filename string) error {
 	defer f.Close()
 	//循环遍历返回的秘钥，可能存在多个秘钥
 	for _, d := range flatresponse.Data {
+		cert, err := this.aes.DecryptToString(d.EncryptCertificate.AssociatedData, d.EncryptCertificate.Nonce, d.EncryptCertificate.Ciphertext)
+		if err == nil {
+			this.SetFlatKey(d.SerialNo, []byte(cert))
+		}
 		f.WriteString(d.SerialNo)
 		f.WriteString("-------------------------------")
 		//解密文件
-		this.aes.DecryptToString(d.EncryptCertificate.AssociatedData, d.EncryptCertificate.Nonce, d.EncryptCertificate.Ciphertext)
+		f.WriteString(cert)
 		f.WriteString("------------END-----------------")
 	}
 
