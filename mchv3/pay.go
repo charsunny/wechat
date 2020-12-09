@@ -66,6 +66,11 @@ type PayOrder struct {
 		Total    int64  `json:"total"`
 		Currency string `json:"currency,omitempty"`
 	} `json:"amount"`
+	Payer struct {
+		OpenID    string `json:"openid,omitempty"`
+		SpOpenID  string `json:"sp_openid,omitempty"`
+		SubOpenID string `json:"sub_openid,omitempty"`
+	} `json:"payer"`
 	SettleInfo *SettleInfo `json:"settle_info,omitempty"`
 	PayDetail  *PayDetail  `json:"detail,omitempty"`
 	SceneInfo  *SceneInfo  `json:"scene_info,omitempty"`
