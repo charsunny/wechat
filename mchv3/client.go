@@ -14,7 +14,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -156,7 +155,7 @@ func (this *Client) DoGet(url string) ([]byte, error) {
 }
 
 func (this *Client) DoPost(url string, body string) ([]byte, error) {
-	return this.Call("POST", url, "")
+	return this.Call("POST", url, body)
 }
 
 func (this *Client) getToken(method string, url string, body string) string {
@@ -219,7 +218,7 @@ func (this *Client) DecryptText(ciphertext string) (string, error) {
 }
 
 //获取平台秘钥，并保存
-func (this *Client) DownloadFlatPublicKey(filename string) error {
+func (this *Client) DownloadFlatPublicKey() error {
 	data, err := this.DoGet("https://api.mch.weixin.qq.com/v3/certificates")
 	if err != nil {
 		return err
@@ -227,26 +226,16 @@ func (this *Client) DownloadFlatPublicKey(filename string) error {
 	flatresponse := flatKeyResponse{}
 	json.Unmarshal(data, &flatresponse)
 	//保存文件
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+
 	//循环遍历返回的秘钥，可能存在多个秘钥
 	for _, d := range flatresponse.Data {
 		cert, err := this.aes.DecryptToString(d.EncryptCertificate.AssociatedData, d.EncryptCertificate.Nonce, d.EncryptCertificate.Ciphertext)
 		if err == nil {
 			this.SetFlatKey(d.SerialNo, []byte(cert))
 		}
-		f.WriteString(d.SerialNo)
-		f.WriteString("-------------------------------")
-		//解密文件
-		f.WriteString(cert)
-		f.WriteString("------------END-----------------")
 	}
 
 	return nil
-
 }
 
 //平台key返回结果对象
