@@ -1,6 +1,7 @@
 package mchv3
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -8,12 +9,17 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -101,6 +107,76 @@ func (this *Client) SetClientKey(key string) {
 		}
 	}
 }
+
+func (this *Client) Upload(url, name string, path string) (media_id string, err error) {
+	if this.client == nil {
+		this.client = &http.Client{}
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	body := &bytes.Buffer{}
+	// 文件写入 body
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("file", filepath.Base(path))
+	if err != nil {
+		return
+	}
+	_, err = io.Copy(part, file)
+
+	hasher := sha256.New()
+	s, err := ioutil.ReadFile(path)
+	hasher.Write(s)
+	if err != nil {
+		return
+	}
+	// 其他参数列表写入 body
+	meta := map[string]string{
+		"filename": name,
+		"sha256":   hex.EncodeToString(hasher.Sum(nil)),
+	}
+	metaData, _ := json.Marshal(meta)
+	if err = writer.WriteField("meta", string(metaData)); err != nil {
+		return
+	}
+	if err = writer.Close(); err != nil {
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		return
+	}
+	token := this.getToken("POST", url, string(metaData))
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "WECHATPAY2-SHA256-RSA2048 "+token)
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+
+	resp, err := this.client.Do(req)
+	if !this.validate(resp.Header) {
+		return "", fmt.Errorf("微信平台返回的消息校验不通过，请检查网络是否被劫持！")
+	}
+	//if resp.StatusCode != http.StatusOK {
+	//	fmt.Println(resp)
+	//	return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", url, resp.StatusCode)
+	//}
+
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	var result map[string]string
+	err = json.Unmarshal(respBody, &result)
+	if err != nil {
+		return "", err
+	}
+	return result["media_id"], nil
+}
+
 func (this *Client) Call(method string, url string, parameter string) ([]byte, error) {
 	if this.client == nil {
 		this.client = &http.Client{}
