@@ -1,4 +1,4 @@
-package core_v3
+package mchv3
 
 import (
 	"fmt"
@@ -13,8 +13,7 @@ func assertEqual(t *testing.T, a, b interface{}) {
 }
 
 func init() {
-	Cli, _ = NewClient("1533391551", "72E6A550FCCC4AB90E1699D06989669221DF167A", "001rsrs001001rsrs001001rsrs001nb", "./apiclient_cert.pem", "./apiclient_key.pem")
-	UserAgent = "User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0"
+	Cli, _ = NewClient(false, "1533391551", "72E6A550FCCC4AB90E1699D06989669221DF167A", "001rsrs001001rsrs001001rsrs001nb", "./apiclient_cert.pem")
 }
 
 func Test_DoGet(t *testing.T) {

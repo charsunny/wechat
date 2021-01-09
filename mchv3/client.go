@@ -7,7 +7,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/sha256"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -19,12 +18,12 @@ import (
 )
 
 const (
-	GATEWAY = "https://api.mch.weixin.qq.com"
+	GATEWAY   = "https://api.mch.weixin.qq.com"
+	UserAgent = "User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0"
 )
 const DEBUG bool = true
 
 var Cli *Client // 默认客户端
-var UserAgent string
 
 type Client struct {
 	GateWay            string            // 网关
@@ -33,16 +32,14 @@ type Client struct {
 	SerialNumber       string            // 商户序列号
 	AppSecret          string            // 商户密钥 微信支付在回调通知和平台证书下载接口中，对关键信息进行了AES-256-GCM加密
 	PrivateKey         *rsa.PrivateKey   // 商户API私钥
-	Certificate        *tls.Certificate  // 商户证书
 	WechatCertificate  *x509.Certificate // 平台证书
 	WechatSerialNumber string            // 微信平台序列号
 	httpClient         *http.Client      // http客户端
 }
 
 // 实例化一个客户端
-func NewClient(isv bool, merchantId, serialNumber, appSecret, certFile, keyFile string) (cli *Client, err error) {
+func NewClient(isv bool, merchantId, serialNumber, appSecret, keyFile string) (cli *Client, err error) {
 
-	var cert tls.Certificate
 	var pk *rsa.PrivateKey
 
 	cli = new(Client)
@@ -52,10 +49,10 @@ func NewClient(isv bool, merchantId, serialNumber, appSecret, certFile, keyFile 
 	cli.MerchantId = merchantId
 	cli.AppSecret = appSecret
 
-	cert, err = tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return
-	}
+	// cert, err = tls.LoadX509KeyPair(certFile, keyFile)
+	// if err != nil {
+	// 	return
+	// }
 
 	pk, err = loadPrivateKey(keyFile)
 	if err != nil {
@@ -63,7 +60,6 @@ func NewClient(isv bool, merchantId, serialNumber, appSecret, certFile, keyFile 
 	}
 
 	cli.PrivateKey = pk
-	cli.Certificate = &cert
 	cli.httpClient = http.DefaultClient
 
 	return

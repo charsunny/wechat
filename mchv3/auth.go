@@ -46,7 +46,6 @@ func (cli *Client) GetWechatCertificate() (err error) {
 	if err != nil {
 		return
 	}
-
 	certResp = new(CertResponse)
 	err = json.Unmarshal(resp, certResp)
 	if err != nil {
@@ -95,20 +94,19 @@ func (cli *Client) GetWechatCertificate() (err error) {
 // 加签
 // https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/qian-ming-sheng-cheng
 func (cli *Client) Sign(method, url, body, nonce string) (sign string, err error) {
-	var string2sign string
-	var digest [32]byte
-	var hashed []byte
+	string2sign := method + "\n" + url + "\n" + timestamp() + "\n" + nonce + "\n" + body + "\n"
 
-	string2sign = method + "\n" + url + "\n" + timestamp() + "\n" + nonce + "\n" + body + "\n"
+	return cli.SignStr(string2sign)
+}
 
-	digest = sha256.Sum256([]byte(string2sign))
-	hashed, err = rsa.SignPKCS1v15(nil, cli.PrivateKey, crypto.SHA256, digest[:])
+func (cli *Client) SignStr(str string) (sign string, err error) {
+	digest := sha256.Sum256([]byte(str))
+	hashed, err := rsa.SignPKCS1v15(nil, cli.PrivateKey, crypto.SHA256, digest[:])
 	if err != nil {
 		return
 	}
 
 	sign = base64.StdEncoding.EncodeToString(hashed)
-
 	return
 }
 

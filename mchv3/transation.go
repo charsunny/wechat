@@ -124,7 +124,7 @@ func Transaction(v3 *Client, order PayOrder) (result map[string]string, err erro
 		order.SubMchID = ""
 		order.SubAppID = ""
 	}
-	url := fmt.Sprintf("https://api.mch.weixin.qq.com/v3/pay/%stransactions/%s", partner, order.Type)
+	url := fmt.Sprintf("/v3/pay/%stransactions/%s", partner, order.Type)
 	data, _ := json.Marshal(order)
 	body, _, err := v3.DoPost(url, string(data))
 	if err != nil {
@@ -135,7 +135,7 @@ func Transaction(v3 *Client, order PayOrder) (result map[string]string, err erro
 }
 
 func CombineTransaction(v3 *Client, order CombinePayOrder) (result map[string]string, err error) {
-	url := fmt.Sprintf("https://api.mch.weixin.qq.com/v3/combine-transactions/%s", order.Type)
+	url := fmt.Sprintf("/v3/combine-transactions/%s", order.Type)
 	data, _ := json.Marshal(order)
 	body, _, err := v3.DoPost(url, string(data))
 	if err != nil {
