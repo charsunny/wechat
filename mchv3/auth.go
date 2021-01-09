@@ -1,4 +1,4 @@
-package core_v3
+package mchv3
 
 import (
 	"crypto"

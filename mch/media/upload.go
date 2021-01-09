@@ -4,19 +4,15 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/hex"
 	"encoding/xml"
-	"github.com/charsunny/wechat/mch/core"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime/multipart"
-	"net/http"
 	"os"
-	"strings"
-)
 
+	"github.com/charsunny/wechat/mch/core"
+)
 
 var cert tls.Certificate
 var caCert []byte
@@ -66,7 +62,7 @@ func Upload(clt *core.Client, file string) (resp map[string]string, err error) {
 
 	uploadMediaRequest.MediaHash = hex.EncodeToString(md5h.Sum(nil))
 
-	data, err :=  xml.Marshal(uploadMediaRequest)
+	data, err := xml.Marshal(uploadMediaRequest)
 	if err != nil {
 		return
 	}

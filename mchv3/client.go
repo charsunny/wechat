@@ -7,327 +7,261 @@ import (
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
-	"net/url"
-	"os"
-	"path/filepath"
 	"strings"
-	"time"
 )
 
-/**
-  api v3 协议
-*/
+const (
+	GATEWAY = "https://api.mch.weixin.qq.com"
+)
+const DEBUG bool = true
+
+var Cli *Client // 默认客户端
+var UserAgent string
+
 type Client struct {
-	// 是否是服务商支付
-	Isv bool
-	// 商户号
-	MerchantId string
-	// 证书序号
-	merchantCertificateSerialNo string
-	// 商户私钥
-	merchantPrivatekey *rsa.PrivateKey
-	//平台证书序号
-	flatCertificateSerialNo string
-	//平台证书-公钥
-	flatCertificate *rsa.PublicKey
-	Nonce           string
-	aes             *AesUtils
-	client          *http.Client
+	GateWay            string            // 网关
+	Isv                bool              // 是否是服务商client
+	MerchantId         string            // 商户id
+	SerialNumber       string            // 商户序列号
+	AppSecret          string            // 商户密钥 微信支付在回调通知和平台证书下载接口中，对关键信息进行了AES-256-GCM加密
+	PrivateKey         *rsa.PrivateKey   // 商户API私钥
+	Certificate        *tls.Certificate  // 商户证书
+	WechatCertificate  *x509.Certificate // 平台证书
+	WechatSerialNumber string            // 微信平台序列号
+	httpClient         *http.Client      // http客户端
 }
 
-func NewClient(mchid, cno string, privatekey []byte) (client *Client) {
-	client = &Client{
-		Isv:        false,
-		MerchantId: mchid,
+// 实例化一个客户端
+func NewClient(isv bool, merchantId, serialNumber, appSecret, certFile, keyFile string) (cli *Client, err error) {
+
+	var cert tls.Certificate
+	var pk *rsa.PrivateKey
+
+	cli = new(Client)
+	cli.Isv = isv
+	cli.GateWay = GATEWAY
+	cli.SerialNumber = serialNumber
+	cli.MerchantId = merchantId
+	cli.AppSecret = appSecret
+
+	cert, err = tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return
 	}
-	client.SetMerchantKey(cno, privatekey)
+
+	pk, err = loadPrivateKey(keyFile)
+	if err != nil {
+		return
+	}
+
+	cli.PrivateKey = pk
+	cli.Certificate = &cert
+	cli.httpClient = http.DefaultClient
+
 	return
 }
 
-func NewIsvClient(mchid, cno string, privatekey []byte) (client *Client) {
-	client = &Client{
-		Isv:        true,
-		MerchantId: mchid,
+// GET一个API
+func (cli *Client) DoGet(url string, needVerify ...bool) (resp []byte, err error) {
+
+	var req *http.Request
+	var sign, auth, nonce string
+
+	req, err = http.NewRequest("GET", GATEWAY+url, nil)
+	if err != nil {
+		return
 	}
-	client.SetMerchantKey(cno, privatekey)
+	req.Header.Add("Content-type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	// sign
+	nonce = genRandomString(12)
+	sign, err = cli.Sign("GET", url, "", nonce)
+	if err != nil {
+		return
+	}
+
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
+	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	req.Header.Add("User-Agent", UserAgent)
+
+	respser, err := cli.httpClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer respser.Body.Close()
+	resp, err = ioutil.ReadAll(respser.Body)
+	if err != nil {
+		return
+	}
+
+	if len(needVerify) > 0 && needVerify[0] {
+		if !cli.Verify(respser, resp) {
+			err = fmt.Errorf("Verify error")
+		}
+	}
 	return
 }
 
-//设置商户秘钥信息
-func (this *Client) SetMerchantKey(cno string, privatekey []byte) error {
-	this.merchantCertificateSerialNo = cno
-	block, _ := pem.Decode(privatekey)
-	if block == nil {
-		return fmt.Errorf("private key error!")
-	}
-	//解析PKCS1格式的私钥
-	priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+// POST一个API
+func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, httpCode int, err error) {
+	var req *http.Request
+	var sign, auth, nonce string
+
+	req, err = http.NewRequest("POST", GATEWAY+url, bytes.NewBuffer([]byte(body)))
 	if err != nil {
-		return err
+		return
 	}
-	this.merchantPrivatekey = priv.(*rsa.PrivateKey)
-	return nil
-}
+	req.Header.Add("Content-type", "application/json")
+	req.Header.Add("Accept", "application/json")
 
-//设置平台秘钥信息
-func (this *Client) SetFlatKey(cno string, publickey []byte) error {
-	this.flatCertificateSerialNo = cno
-	block, _ := pem.Decode(publickey)
-	if block == nil {
-		return fmt.Errorf("public key error")
-	}
-	// 解析公钥
-	pubInterface, err := x509.ParseCertificate(block.Bytes)
+	// sign
+	nonce = genRandomString(12)
+	sign, err = cli.Sign("POST", url, body, nonce)
 	if err != nil {
-		return err
+		return
 	}
-	this.flatCertificate = pubInterface.PublicKey.(*rsa.PublicKey)
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
+	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	req.Header.Add("User-Agent", UserAgent)
 
-	return nil
-}
+	respser, err := cli.httpClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer respser.Body.Close()
 
-//设置Client的秘钥
-func (this *Client) SetClientKey(key string) {
-	if key != "" {
-		this.aes = &AesUtils{}
-		err := this.aes.Init(key)
-		if err != nil {
-			fmt.Println(err.Error())
-			this.aes = nil
+	httpCode = respser.StatusCode
+	resp, err = ioutil.ReadAll(respser.Body)
+	if err != nil {
+		return
+	}
+
+	if len(needVerify) > 0 && needVerify[0] {
+		if !cli.Verify(respser, resp) {
+			err = fmt.Errorf("Verify error")
 		}
 	}
+
+	return
 }
 
-func (this *Client) Upload(url, name string, path string) (media_id string, err error) {
-	if this.client == nil {
-		this.client = &http.Client{}
-	}
-	file, err := os.Open(path)
+// 敏感信息加密
+// https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/min-gan-xin-xi-jia-mi
+func (cli *Client) SecretFieldEncrypt(plaintext []byte) (ciphertext string, err error) {
+	var cipherdata []byte
+	cipherdata, err = rsa.EncryptOAEP(sha1.New(), rand.Reader, (cli.WechatCertificate.PublicKey).(*rsa.PublicKey), plaintext, nil)
 	if err != nil {
 		return
 	}
-	defer file.Close()
-	body := &bytes.Buffer{}
-	// 文件写入 body
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("file", filepath.Base(path))
-	if err != nil {
-		return
-	}
-	_, err = io.Copy(part, file)
-
-	hasher := sha256.New()
-	s, err := ioutil.ReadFile(path)
-	hasher.Write(s)
-	if err != nil {
-		return
-	}
-	// 其他参数列表写入 body
-	meta := map[string]string{
-		"filename": name,
-		"sha256":   hex.EncodeToString(hasher.Sum(nil)),
-	}
-	metaData, _ := json.Marshal(meta)
-	if err = writer.WriteField("meta", string(metaData)); err != nil {
-		return
-	}
-	if err = writer.Close(); err != nil {
-		return
-	}
-
-	req, err := http.NewRequest(http.MethodPost, url, body)
-	if err != nil {
-		return
-	}
-	token := this.getToken("POST", url, string(metaData))
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "WECHATPAY2-SHA256-RSA2048 "+token)
-	req.Header.Add("Content-Type", writer.FormDataContentType())
-
-	resp, err := this.client.Do(req)
-	if !this.validate(resp.Header) {
-		return "", fmt.Errorf("微信平台返回的消息校验不通过，请检查网络是否被劫持！")
-	}
-	//if resp.StatusCode != http.StatusOK {
-	//	fmt.Println(resp)
-	//	return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", url, resp.StatusCode)
-	//}
-
-	defer resp.Body.Close()
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	var result map[string]string
-	err = json.Unmarshal(respBody, &result)
-	if err != nil {
-		return "", err
-	}
-	return result["media_id"], nil
+	ciphertext = base64.StdEncoding.EncodeToString(cipherdata)
+	return
 }
 
-func (this *Client) Call(method string, url string, parameter string) ([]byte, error) {
-	if this.client == nil {
-		this.client = &http.Client{}
+// 图片上传
+// https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/tool/chapter3_1.shtml
+func (cli *Client) ImageUpload(content []byte, filename string) (mediaId string, err error) {
+	var format, meta, string2sign, sign, boundary, nonce, body, auth string
+	var hashed, resp []byte
+	var digest [32]byte
+	var req *http.Request
+
+	format = strings.Split(filename, ".")[1]
+	if format == "jpg" || format == "bmp" || format == "png" {
+		// pass
+	} else {
+		err = fmt.Errorf("format not allowed")
+		return
 	}
 
-	req, err := http.NewRequest(method, url, strings.NewReader(parameter))
+	sum := sha256.Sum256(content)
+	meta = fmt.Sprintf("{\"filename\":\"%s\",\"sha256\":\"%x\"}", filename, sum)
+	nonce = genRandomString(12)
+	string2sign = "POST\n" + "/v3/merchant/media/upload\n" + timestamp() + "\n" + nonce + "\n" + meta + "\n"
+
+	fmt.Println(string2sign)
+
+	digest = sha256.Sum256([]byte(string2sign))
+	hashed, err = rsa.SignPKCS1v15(nil, cli.PrivateKey, crypto.SHA256, digest[:])
 	if err != nil {
-		return nil, err
+		return
 	}
-	//设置签名头
-	token := this.getToken(method, url, parameter)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "WECHATPAY2-SHA256-RSA2048 "+token)
 
-	resp, err := this.client.Do(req)
-	if !this.validate(resp.Header) {
-		return nil, fmt.Errorf("微信平台返回的消息校验不通过，请检查网络是否被劫持！")
+	sign = base64.StdEncoding.EncodeToString(hashed)
+
+	boundary = "------------" + genRandomString(12)
+
+	body = "--" + boundary + "\r\n" + "Content-Disposition: form-data; name=\"meta\";" + "\r\n" + "Content-Type: application/json" + "\r\n\r\n" + meta + "\r\n--" + boundary + "\r\n" + fmt.Sprintf("Content-Disposition: form-data; name=\"file\"; filename=\"%s\";", filename) + "\r\n" + fmt.Sprintf("Content-Type: image/%s", format) + "\r\n\r\n" + string(content) + "\r\n--" + boundary + "--\r\n"
+
+	req, err = http.NewRequest("POST", GATEWAY+"/v3/merchant/media/upload", bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		return
 	}
-	//if resp.StatusCode != http.StatusOK {
-	//	fmt.Println(resp)
-	//	return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", url, resp.StatusCode)
-	//}
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data.image/%s", format))
+	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
+	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data;boundary=\"%s\"", boundary))
+	req.Header.Add("User-Agent", UserAgent)
+	req.Header.Add("Accept", "application/json")
+
+	respser, err := cli.httpClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer respser.Body.Close()
+	resp, err = ioutil.ReadAll(respser.Body)
+	if err != nil {
+		return
+	}
+
+	type UploadResult struct {
+		MediaId string `json:"media_id"` // 媒体文件标识 Id
+	}
+	var res *UploadResult
+
+	fmt.Println(string(resp))
+	res = new(UploadResult)
+	err = json.Unmarshal(resp, res)
+	if err != nil {
+		return
+	}
+
+	mediaId = res.MediaId
+	return
+
+}
+
+// 加载一个私钥
+func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
+
+	priv, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	return body, nil
-}
+	privPem, _ := pem.Decode(priv)
 
-//检查消息头
-func (this *Client) validate(h http.Header) bool {
-	nonce := h["Wechatpay-Nonce"]
-	sign := h["Wechatpay-Signature"]
-	serial := h["Wechatpay-Serial"]
-	if this.aes != nil {
-		_, err := this.aes.DecryptToString(serial[0], nonce[0], sign[0])
-		if err != nil {
-			return false
+	var privPemBytes []byte
+
+	privPemBytes = privPem.Bytes
+
+	var parsedKey interface{}
+	if parsedKey, err = x509.ParsePKCS1PrivateKey(privPemBytes); err != nil {
+		if parsedKey, err = x509.ParsePKCS8PrivateKey(privPemBytes); err != nil { // note this returns type `interface{}`
+			return nil, err
 		}
 	}
 
-	return true
-
-}
-
-func (this *Client) DoGet(url string) ([]byte, error) {
-	return this.Call("GET", url, "")
-}
-
-func (this *Client) DoPost(url string, body string) ([]byte, error) {
-	return this.Call("POST", url, body)
-}
-
-func (this *Client) getToken(method string, url string, body string) string {
-	var t int64 = time.Now().Unix()
-	msg := this.buildSignatureMsg(method, url, t, body)
-	signer := this.Sign(msg)
-	return fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",timestamp=\"%d\",serial_no=\"%s\",signature=\"%s\"", this.MerchantId, this.Nonce, t, this.merchantCertificateSerialNo, signer)
-}
-
-func (this *Client) buildSignatureMsg(method string, urlstr string, timestamp int64, body string) string {
-	u, err := url.Parse(urlstr)
-	if err != nil {
-
-	}
-	canonicalUrl := u.RequestURI()
-	return fmt.Sprintf("%s\n%s\n%d\n%s\n%s\n", method, canonicalUrl, timestamp, this.Nonce, body)
-
-}
-
-func (this *Client) Sign(msg string) string {
-	h := sha256.New()
-	h.Write([]byte(msg))
-	digest := h.Sum(nil)
-	s, err := rsa.SignPKCS1v15(rand.Reader, this.merchantPrivatekey, crypto.SHA256, digest)
-	if err != nil {
-		fmt.Println("rsaSign SignPKCS1v15 error", err.Error())
-		return ""
-	}
-	return base64.StdEncoding.EncodeToString(s)
-}
-
-/**
-  加密敏感信息
-*/
-func (this *Client) EncryptText(secretMessage string) (string, error) {
-	rng := rand.Reader
-	cipherdata, err := rsa.EncryptOAEP(sha1.New(), rng, this.flatCertificate, []byte(secretMessage), nil)
-	if err != nil {
-		return "", err
-	}
-
-	ciphertext := base64.StdEncoding.EncodeToString(cipherdata)
-	return ciphertext, nil
-}
-
-/**
-  解密敏感信息
-*/
-func (this *Client) DecryptText(ciphertext string) (string, error) {
-	cipherdata, _ := base64.StdEncoding.DecodeString(ciphertext)
-	rng := rand.Reader
-
-	plaintext, err := rsa.DecryptOAEP(sha1.New(), rng, this.merchantPrivatekey, cipherdata, nil)
-	if err != nil {
-		return "", fmt.Errorf("Error from decryption: %s\n", err)
-	}
-
-	return string(plaintext), nil
-
-}
-
-//获取平台秘钥，并保存
-func (this *Client) DownloadFlatPublicKey() error {
-	data, err := this.DoGet("https://api.mch.weixin.qq.com/v3/certificates")
-	if err != nil {
-		return err
-	}
-	flatresponse := flatKeyResponse{}
-	json.Unmarshal(data, &flatresponse)
-	//保存文件
-
-	//循环遍历返回的秘钥，可能存在多个秘钥
-	for _, d := range flatresponse.Data {
-		cert, err := this.aes.DecryptToString(d.EncryptCertificate.AssociatedData, d.EncryptCertificate.Nonce, d.EncryptCertificate.Ciphertext)
-		if err == nil {
-			this.SetFlatKey(d.SerialNo, []byte(cert))
-		}
-	}
-
-	return nil
-}
-
-//平台key返回结果对象
-type flatKeyResponse struct {
-	Data []certificateData
-}
-type certificateData struct {
-	SerialNo           string             `json:"serialNo"`
-	EffectiveTime      string             `json:"effectiveTime"`
-	ExpireTime         string             `json:"expireTime"`
-	EncryptCertificate encryptCertificate `json:"encrypt_certificate"`
-}
-
-type encryptCertificate struct {
-	Algorithm      string `json:"algorithm"`
-	Nonce          string `json:"nonce"`
-	AssociatedData string `json:"associated_data"`
-	Ciphertext     string `json:"ciphertext"`
+	return parsedKey.(*rsa.PrivateKey), nil
 }
