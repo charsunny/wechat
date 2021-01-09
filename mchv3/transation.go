@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 )
 
 const (
@@ -54,14 +53,14 @@ type PayOrder struct {
 	SubAppID string `json:"sub_appid,omitempty"` // 子账户appid
 	SubMchID string `json:"sub_mchid,omitempty"` // 子商户mchid
 	// 非isv模式，必须
-	AppID       string     `json:"appid,omitempty"` // 公众号ID
-	MchID       string     `json:"mchid,omitempty"`
-	Description string     `json:"description"`
-	OutTradeNo  string     `json:"out_trade_no"`
-	TimeExpire  *time.Time `json:"time_expire,omitempty"`
-	Attach      string     `json:"attach,omitempty"`
-	NotifyURL   string     `json:"notify_url"`
-	GoodsTag    string     `json:"goods_tag,omitempty"`
+	AppID       string `json:"appid,omitempty"` // 公众号ID
+	MchID       string `json:"mchid,omitempty"`
+	Description string `json:"description"`
+	OutTradeNo  string `json:"out_trade_no"`
+	TimeExpire  *Time  `json:"time_expire,omitempty"`
+	Attach      string `json:"attach,omitempty"`
+	NotifyURL   string `json:"notify_url"`
+	GoodsTag    string `json:"goods_tag,omitempty"`
 	Amount      struct {
 		Total    int64  `json:"total"`
 		Currency string `json:"currency,omitempty"`
@@ -99,9 +98,9 @@ type CombinePayOrder struct {
 	PayInfo    struct {
 		OpenID string `json:"openid,omitempty"`
 	} `json:"combine_payer_info,omitempty"`
-	TimeStart  *time.Time `json:"time_start,omitempty"`
-	TimeExpire *time.Time `json:"time_expire,omitempty"`
-	NotifyURL  string     `json:"notify_url"`
+	TimeStart  *Time  `json:"time_start,omitempty"`
+	TimeExpire *Time  `json:"time_expire,omitempty"`
+	NotifyURL  string `json:"notify_url"`
 }
 
 func Transaction(v3 *Client, order PayOrder) (result map[string]string, err error) {

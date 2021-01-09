@@ -126,6 +126,7 @@ func (cli *Client) DoPost(url, body string, needVerify ...bool) (resp []byte, ht
 	if err != nil {
 		return
 	}
+	fmt.Println("wechat pay post params:", body)
 	auth = fmt.Sprintf("mchid=\"%s\",nonce_str=\"%s\",signature=\"%s\",timestamp=\"%s\",serial_no=\"%s\"", cli.MerchantId, nonce, sign, timestamp(), cli.SerialNumber)
 	req.Header.Add("Authorization", "WECHATPAY2-SHA256-RSA2048 "+auth)
 	req.Header.Add("User-Agent", UserAgent)
