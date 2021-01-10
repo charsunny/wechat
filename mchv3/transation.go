@@ -84,7 +84,7 @@ type PayOrder struct {
 	Attach        string `json:"attach,omitempty"`
 	NotifyURL     string `json:"notify_url"`
 	GoodsTag      string `json:"goods_tag,omitempty"`
-	ProfitSharing bool   `json:"profit_sharing"` // 是否分账
+	ProfitSharing string `json:"profit_sharing,omitempty"` // 是否分账
 	Amount        struct {
 		Total    int64  `json:"total"`
 		Currency string `json:"currency,omitempty"`
