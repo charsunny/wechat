@@ -32,17 +32,40 @@ type PayDetail struct {
 	Goods     []*GoodsInfo `json:"goods_detail"`
 }
 
+type PromotionDetail struct {
+	CouponID            string         `json:"coupon_id"`
+	Name                string         `json:"name"`
+	Scope               string         `json:"scope"` // GLOBAL：全场代金券 SINGLE：单品优惠
+	Type                string         `json:"type"`
+	Amount              int64          `json:"amount"`
+	StockID             string         `json:"stock_id"`
+	WechatpayContribute int64          `json:"wechatpay_contribute"`
+	MerchantContribute  int64          `json:"merchant_contribute"`
+	OtherContribute     int64          `json:"other_contribute"`
+	Currency            string         `json:"currency,omitempty"`
+	GoodsDetails        []*GoodsDetail `json:"goods_detail,omitempty"`
+}
+
+type GoodsDetail struct {
+	GoodsID        string `json:"goods_id"` // 公众号ID
+	Quantity       int64  `json:"quantity"`
+	UnitPrice      int64  `json:"unit_price"`
+	DiscountAmount int64  `json:"discount_amount,omitempty"`
+	GoodsRemark    string `json:"goods_remark,omitempty"`
+}
+
 type GoodsInfo struct {
-	ID        string `json:"merchant_goods_id"` // 公众号ID
+	ID        string `json:"merchant_goods_id"` // 小店商品id
 	WechatID  string `json:"wechatpay_goods_id,omitempty"`
 	GoodsName string `json:"goods_name,omitempty"`
 	Quantity  int64  `json:"quantity"`
 	UnitPrice int64  `json:"unit_price"`
 }
 
+// 用于电商收付通支付
 type SettleInfo struct {
-	ProfitSharing bool   `json:"profit_sharing"`
-	SubsidyAmount *int64 `json:"subsidy_amount,omitempty"`
+	ProfitSharing bool   `json:"profit_sharing"`           // 是否分账
+	SubsidyAmount *int64 `json:"subsidy_amount,omitempty"` // 分账补差金额
 }
 
 type PayOrder struct {
@@ -53,15 +76,16 @@ type PayOrder struct {
 	SubAppID string `json:"sub_appid,omitempty"` // 子账户appid
 	SubMchID string `json:"sub_mchid,omitempty"` // 子商户mchid
 	// 非isv模式，必须
-	AppID       string `json:"appid,omitempty"` // 公众号ID
-	MchID       string `json:"mchid,omitempty"`
-	Description string `json:"description"`
-	OutTradeNo  string `json:"out_trade_no"`
-	TimeExpire  *Time  `json:"time_expire,omitempty"`
-	Attach      string `json:"attach,omitempty"`
-	NotifyURL   string `json:"notify_url"`
-	GoodsTag    string `json:"goods_tag,omitempty"`
-	Amount      struct {
+	AppID         string `json:"appid,omitempty"` // 公众号ID
+	MchID         string `json:"mchid,omitempty"`
+	Description   string `json:"description"`
+	OutTradeNo    string `json:"out_trade_no"`
+	TimeExpire    *Time  `json:"time_expire,omitempty"`
+	Attach        string `json:"attach,omitempty"`
+	NotifyURL     string `json:"notify_url"`
+	GoodsTag      string `json:"goods_tag,omitempty"`
+	ProfitSharing bool   `json:"profit_sharing"` // 是否分账
+	Amount        struct {
 		Total    int64  `json:"total"`
 		Currency string `json:"currency,omitempty"`
 	} `json:"amount"`

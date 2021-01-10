@@ -19,15 +19,10 @@ import (
 
 type CertResponse struct {
 	Data []struct {
-		SerialNo           string `json:"serial_no"`      // 证书序列号
-		EffectiveTime      string `json:"effective_time"` // 生效时间
-		ExpireTime         string `json:"expire_time"`    // 过期时间
-		EncryptCertificate struct {
-			Algorithm      string `json:"algorithm"`       // 算法
-			Nonce          string `json:"nonce"`           // 随机串
-			AssociatedData string `json:"associated_data"` // 附加数据包
-			Ciphertext     string `json:"ciphertext"`      // 密文
-		} `json:"encrypt_certificate"` // 证书内容
+		SerialNo           string      `json:"serial_no"`           // 证书序列号
+		EffectiveTime      string      `json:"effective_time"`      // 生效时间
+		ExpireTime         string      `json:"expire_time"`         // 过期时间
+		EncryptCertificate EncryptData `json:"encrypt_certificate"` // 证书内容
 	} `json:"data"`
 }
 
@@ -36,10 +31,8 @@ type CertResponse struct {
 // 可以弄个Cronjob线程周期执行这个方法
 func (cli *Client) GetWechatCertificate() (err error) {
 	var certResp *CertResponse
-	var resp, plaintext, ciphertext, nonce, ad []byte
-	var block cipher.Block
+	var resp []byte
 	var pblock *pem.Block
-	var aesgcm cipher.AEAD
 	var cert *x509.Certificate
 
 	resp, err = cli.DoGet("/v3/certificates")
@@ -52,24 +45,7 @@ func (cli *Client) GetWechatCertificate() (err error) {
 		return
 	}
 
-	nonce = []byte(certResp.Data[0].EncryptCertificate.Nonce)
-	ciphertext, err = base64.StdEncoding.DecodeString(certResp.Data[0].EncryptCertificate.Ciphertext)
-	if err != nil {
-		return
-	}
-	ad = []byte(certResp.Data[0].EncryptCertificate.AssociatedData)
-
-	// 解密过程 https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/zheng-shu-he-hui-tiao-bao-wen-jie-mi
-	block, err = aes.NewCipher([]byte(cli.AppSecret))
-	if err != nil {
-		return
-	}
-	aesgcm, err = cipher.NewGCM(block)
-	if err != nil {
-		return
-	}
-
-	plaintext, err = aesgcm.Open(nil, nonce, ciphertext, ad)
+	plaintext, err := cli.DecryptData(certResp.Data[0].EncryptCertificate)
 	if err != nil {
 		return
 	}
@@ -88,6 +64,31 @@ func (cli *Client) GetWechatCertificate() (err error) {
 
 	cli.WechatCertificate = cert
 	cli.WechatSerialNumber = strings.ToUpper(cert.SerialNumber.Text(16))
+	return
+}
+
+func (cli *Client) DecryptData(encryptData EncryptData) (data []byte, err error) {
+	nonce := []byte(encryptData.Nonce)
+	ciphertext, err := base64.StdEncoding.DecodeString(encryptData.Ciphertext)
+	if err != nil {
+		return
+	}
+	ad := []byte(encryptData.AssociatedData)
+
+	// 解密过程 https://wechatpay-api.gitbook.io/wechatpay-api-v3/qian-ming-zhi-nan-1/zheng-shu-he-hui-tiao-bao-wen-jie-mi
+	block, err := aes.NewCipher([]byte(cli.AppSecret))
+	if err != nil {
+		return
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return
+	}
+
+	data, err = aesgcm.Open(nil, nonce, ciphertext, ad)
+	if err != nil {
+		return
+	}
 	return
 }
 
