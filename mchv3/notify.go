@@ -1,6 +1,8 @@
 package mchv3
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type PayResp struct {
 	ID           string      `json:"id"`

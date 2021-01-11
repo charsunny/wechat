@@ -2,6 +2,7 @@ package mchv3
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -15,11 +16,12 @@ func (jt *Time) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	t := new(time.Time)
-	t1, err := time.Parse(Fmt, string(data))
-	t = &t1
+	t1, err := time.Parse(`"`+Fmt+`"`, string(data))
 	if err != nil {
+		fmt.Println(string(data), err)
 		return err
 	}
+	t = &t1
 	*jt = (Time)(*t)
 	return nil
 }
